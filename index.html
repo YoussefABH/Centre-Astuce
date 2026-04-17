@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Centre Astuces - Gestion de soutien scolaire</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,123 +15,175 @@
             box-sizing: border-box;
             font-family: 'Inter', sans-serif;
         }
+
         body {
-            background: #f3f4f6;
-            color: #1f2937;
+            background: #0B0F1C;
+            color: #E2E8F0;
             padding-bottom: 85px;
         }
+
+        /* Palette sombre élégante */
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --danger: #ef4444;
-            --success: #10b981;
-            --border: #e5e7eb;
-            --card-bg: #ffffff;
-            --text-muted: #6b7280;
-            --shadow: 0 1px 3px rgba(0,0,0,0.05);
+            --bg-primary: #0B0F1C;
+            --bg-card: #111827;
+            --border: #1F2A40;
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --secondary: #8B5CF6;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
+
         /* Auth */
         .auth-container {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(circle at 10% 20%, rgba(99,102,241,0.2) 0%, #0B0F1C 90%);
             padding: 1rem;
         }
         .auth-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 2rem;
             padding: 2rem;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            max-width: 440px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(4px);
         }
-        /* App */
+        .auth-card h2 {
+            background: linear-gradient(135deg, #FFF, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* App container */
         .app-container {
             display: none;
             max-width: 1400px;
             margin: 0 auto;
             padding: 1rem 1rem 5rem;
         }
-        /* Bottom navigation (plus grande) */
+
+        /* Bottom navigation (grande, tactile) */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(12px);
             display: flex;
             justify-content: space-around;
-            padding: 0.75rem 0.5rem;
+            padding: 0.8rem 0.5rem;
             border-top: 1px solid var(--border);
             z-index: 1000;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            overflow-x: auto;
+            gap: 0.2rem;
         }
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             background: transparent;
             border: none;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             font-size: 0.7rem;
             cursor: pointer;
-            padding: 0.4rem 0.8rem;
+            padding: 0.5rem 0.8rem;
             border-radius: 2rem;
             transition: all 0.2s;
             white-space: nowrap;
         }
-        .nav-item i { font-size: 1.5rem; }
+        .nav-item i { font-size: 1.6rem; }
         .nav-item.active {
             color: var(--primary);
-            background: #eef2ff;
+            background: rgba(99, 102, 241, 0.2);
         }
+
         /* Panels */
-        .panel { display: none; animation: fadeIn 0.2s ease; }
+        .panel { display: none; animation: fadeSlide 0.25s ease; }
         .panel.active-panel { display: block; }
-        @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
-        /* Cartes */
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
         .card {
-            background: var(--card-bg);
+            background: var(--bg-card);
             border-radius: 1.5rem;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             border: 1px solid var(--border);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.1s ease;
         }
+        .card:hover {
+            border-color: var(--primary);
+        }
+
+        /* Boutons */
         .btn {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             border: none;
-            padding: 0.65rem 1.3rem;
+            padding: 0.7rem 1.5rem;
             border-radius: 2rem;
             color: white;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
         }
         .btn-outline {
             background: transparent;
             border: 1px solid var(--border);
-            color: #1f2937;
+            color: var(--text-primary);
+            box-shadow: none;
         }
-        .btn-danger { background: var(--danger); }
-        .btn-sm { padding: 0.4rem 1rem; font-size: 0.8rem; }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+        }
+        .btn-sm {
+            padding: 0.4rem 1.2rem;
+            font-size: 0.8rem;
+        }
+
+        /* Formulaires */
         input, select, textarea {
-            background: white;
+            background: #0F172A;
             border: 1px solid var(--border);
             border-radius: 1rem;
-            padding: 0.7rem 1rem;
+            padding: 0.8rem 1rem;
+            color: white;
             width: 100%;
             margin-top: 0.25rem;
             font-size: 0.9rem;
+            transition: 0.2s;
         }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.3);
+        }
+
+        /* Grilles */
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -144,64 +196,109 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1f2937;
+            background: #1E293B;
             color: white;
-            padding: 0.75rem 1.5rem;
+            padding: 0.8rem 1.8rem;
             border-radius: 3rem;
             z-index: 2000;
             font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 4px solid var(--primary);
+            box-shadow: var(--shadow-lg);
         }
+
+        /* Loading */
         .loading-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
         }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.8rem 0.4rem; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.9rem; }
-        th { font-weight: 600; color: var(--text-muted); }
-        .scroll-x { overflow-x: auto; }
+
+        /* Tableaux */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: rgba(15, 23, 42, 0.5);
+        }
+        tr:hover td {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Modale */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
         }
         .modal-content {
-            background: white;
+            background: var(--bg-card);
             border-radius: 1.5rem;
-            padding: 1.5rem;
+            padding: 1.8rem;
             width: 90%;
             max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
+            border: 1px solid var(--border);
         }
+
+        /* Widgets dashboard */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFF, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Lang selector */
         .lang-select {
-            background: white;
+            background: #0F172A;
             border: 1px solid var(--border);
             border-radius: 2rem;
             padding: 0.4rem 0.8rem;
+            color: white;
             cursor: pointer;
         }
+
         @media (max-width: 640px) {
             .nav-item span { display: none; }
-            .nav-item i { font-size: 1.6rem; }
-            .btn { padding: 0.5rem 1rem; }
+            .nav-item i { font-size: 1.8rem; }
+            .btn { padding: 0.6rem 1.2rem; }
+            th, td { padding: 0.7rem 0.4rem; }
         }
     </style>
 </head>
@@ -254,12 +351,12 @@
     function showToast(msg, type = "info") {
         let t = document.querySelector('.toast'); if (t) t.remove();
         let div = document.createElement('div'); div.className = 'toast'; div.innerText = msg;
-        div.style.background = type === 'error' ? '#dc2626' : '#1f2937';
+        if (type === 'error') div.style.borderLeftColor = '#EF4444';
         document.body.appendChild(div); setTimeout(() => div.remove(), 3000);
     }
     function loading(show = true) {
         let l = document.getElementById('loader');
-        if (!l && show) { let d = document.createElement('div'); d.id = 'loader'; d.className = 'loading-overlay'; d.innerHTML = '<div class="card">Chargement...</div>'; document.body.appendChild(d); }
+        if (!l && show) { let d = document.createElement('div'); d.id = 'loader'; d.className = 'loading-overlay'; d.innerHTML = '<div class="card">Chargement en cours...</div>'; document.body.appendChild(d); }
         else if (l && !show) l.remove();
     }
     function getYearRef() { if (!currentUser || !activeYearId) return null; return doc(db, `centres/${currentUser.uid}/years/${activeYearId}`); }
@@ -305,9 +402,9 @@
     function openModal(title, fields, onSubmit) {
         const modalDiv = document.createElement('div');
         modalDiv.className = 'modal';
-        let html = `<div class="modal-content"><h3>${title}</h3>`;
-        fields.forEach(f => { html += `<label>${f.label}</label><input type="${f.type || 'text'}" id="modal_${f.id}" value="${f.value || ''}" placeholder="${f.placeholder || ''}">`; });
-        html += `<div class="flex-between" style="margin-top:1rem;"><button id="modalCancel" class="btn btn-outline">${t('cancel')}</button><button id="modalConfirm" class="btn">${t('confirm')}</button></div></div>`;
+        let html = `<div class="modal-content"><h3 style="margin-bottom:1rem">${title}</h3>`;
+        fields.forEach(f => { html += `<label style="display:block; margin-top:0.8rem">${f.label}</label><input type="${f.type || 'text'}" id="modal_${f.id}" value="${f.value || ''}" placeholder="${f.placeholder || ''}">`; });
+        html += `<div class="flex-between" style="margin-top:1.5rem;"><button id="modalCancel" class="btn btn-outline">${t('cancel')}</button><button id="modalConfirm" class="btn">${t('confirm')}</button></div></div>`;
         modalDiv.innerHTML = html;
         document.body.appendChild(modalDiv);
         modalDiv.querySelector('#modalCancel').onclick = () => modalDiv.remove();
@@ -319,7 +416,7 @@
         };
     }
 
-    // ========== RENDU DES PANNEAUX ==========
+    // ========== RENDU DES PANNEAUX (avec tableaux corrects) ==========
     async function renderDashboard() {
         if (!activeYearId) { document.getElementById('dashboardPanel').innerHTML = '<div class="card">Sélectionnez ou créez une année scolaire</div>'; return; }
         loading(true);
@@ -330,18 +427,18 @@
         const levels = ['Primaire', 'Collège', 'Lycée', 'Supérieur'];
         const levelStats = levels.map(l => payments.filter(p => p.level === l).reduce((a, b) => a + Number(b.amount), 0));
         let widgetConfig = JSON.parse(localStorage.getItem('widgetConfig') || '{"revenue":true,"expenses":true,"profit":true,"studentsCount":true,"chart":true}');
-        let html = `<div class="flex-between"><h3>${t('dashboard')}</h3><button id="configWidgetsBtn" class="btn btn-sm">Configurer widgets</button><button id="exportCSVBtn" class="btn btn-sm btn-outline">Export CSV</button></div>
+        let html = `<div class="flex-between"><h2>${t('dashboard')}</h2><div><button id="configWidgetsBtn" class="btn btn-sm">Configurer widgets</button><button id="exportCSVBtn" class="btn btn-sm btn-outline" style="margin-left:0.5rem">Export CSV</button></div></div>
         <div class="grid-2" id="widgetsContainer">
-            ${widgetConfig.revenue ? `<div class="card"><h3>💰 Revenus</h3><p class="stat">${totalRev} DH</p></div>` : ''}
-            ${widgetConfig.expenses ? `<div class="card"><h3>📉 Dépenses</h3><p class="stat">${totalExp} DH</p></div>` : ''}
-            ${widgetConfig.profit ? `<div class="card"><h3>📈 Bénéfice</h3><p class="stat">${profit} DH</p></div>` : ''}
-            ${widgetConfig.studentsCount ? `<div class="card"><h3>👩‍🎓 Élèves</h3><p class="stat">${students.length}</p></div>` : ''}
+            ${widgetConfig.revenue ? `<div class="card"><h3>💰 Revenus</h3><div class="stat-number">${totalRev} DH</div></div>` : ''}
+            ${widgetConfig.expenses ? `<div class="card"><h3>📉 Dépenses</h3><div class="stat-number">${totalExp} DH</div></div>` : ''}
+            ${widgetConfig.profit ? `<div class="card"><h3>📈 Bénéfice</h3><div class="stat-number">${profit} DH</div></div>` : ''}
+            ${widgetConfig.studentsCount ? `<div class="card"><h3>👩‍🎓 Élèves</h3><div class="stat-number">${students.length}</div></div>` : ''}
             ${widgetConfig.chart ? `<div class="card"><canvas id="levelChart" width="300" height="200"></canvas></div>` : ''}
         </div>`;
         document.getElementById('dashboardPanel').innerHTML = html;
         const canvas = document.getElementById('levelChart');
         if (canvas && currentChart) currentChart.destroy();
-        if (canvas) currentChart = new Chart(canvas, { type: 'bar', data: { labels: levels, datasets: [{ label: 'Montant (DH)', data: levelStats, backgroundColor: '#4f46e5' }] } });
+        if (canvas) currentChart = new Chart(canvas, { type: 'bar', data: { labels: levels, datasets: [{ label: 'Montant (DH)', data: levelStats, backgroundColor: '#6366F1', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true } });
         document.getElementById('configWidgetsBtn')?.addEventListener('click', () => {
             let newConfig = { revenue: confirm("Afficher revenus ?"), expenses: confirm("Afficher dépenses ?"), profit: confirm("Afficher bénéfice ?"), studentsCount: confirm("Afficher nombre d'élèves ?"), chart: confirm("Afficher graphique ?") };
             localStorage.setItem('widgetConfig', JSON.stringify(newConfig));
@@ -357,9 +454,27 @@
     async function renderStudents() {
         let students = await getStudents(), parents = await getParents();
         const parentMap = Object.fromEntries(parents.map(p => [p.id, p.name]));
-        let html = `<div class="flex-between"><h3>${t('students')}</h3><button id="addStudentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button></div>
-        <input type="text" id="searchStudent" placeholder="${t('search')}...">
-        <div class="card"><div class="scroll-x">能able><thead><tr><th>Nom</th><th>Niveau</th><th>Téléphone</th><th>Parent</th><th>Actions</th></tr></thead><tbody>${students.map(s => `<tr><td>${s.fullName}</td><td>${s.level}</td><td>${s.phone || ''}</td><td>${parentMap[s.parentId] || '—'}</td><td><button data-id="${s.id}" class="editStudentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${s.id}" class="deleteStudentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+        let html = `<div class="flex-between"><h2>${t('students')}</h2><button id="addStudentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button></div>
+        <input type="text" id="searchStudent" placeholder="${t('search')}..." style="margin-bottom:1rem">
+        <div class="card"><div class="table-wrapper">
+        <table>
+            <thead><tr><th>Nom</th><th>Niveau</th><th>Téléphone</th><th>Parent</th><th>Actions</th></tr></thead>
+            <tbody>
+                ${students.map(s => `
+                    <tr>
+                        <td>${s.fullName}</td>
+                        <td>${s.level}</td>
+                        <td>${s.phone || ''}</td>
+                        <td>${parentMap[s.parentId] || '—'}</td>
+                        <td>
+                            <button data-id="${s.id}" class="editStudentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button>
+                            <button data-id="${s.id}" class="deleteStudentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        </div></div>`;
         document.getElementById('studentsPanel').innerHTML = html;
         document.getElementById('addStudentBtn')?.addEventListener('click', () => openModal("Ajouter élève", [{ id: "name", label: "Nom complet" }, { id: "level", label: "Niveau" }, { id: "phone", label: "Téléphone" }, { id: "parentId", label: "ID Parent (optionnel)" }], async (data) => { await setDoc(doc(getSubCol('eleves')), { fullName: data.name, level: data.level, phone: data.phone, parentId: data.parentId }); showToast("Ajouté"); renderStudents(); }));
         document.querySelectorAll('.editStudentBtn').forEach(btn => btn.addEventListener('click', async () => { let s = (await getStudents()).find(s => s.id === btn.dataset.id); openModal("Modifier élève", [{ id: "name", label: "Nom", value: s.fullName }, { id: "level", label: "Niveau", value: s.level }, { id: "phone", label: "Téléphone", value: s.phone }, { id: "parentId", label: "Parent ID", value: s.parentId }], async (data) => { await setDoc(doc(getSubCol('eleves'), btn.dataset.id), { fullName: data.name, level: data.level, phone: data.phone, parentId: data.parentId }); showToast("Modifié"); renderStudents(); }); }));
@@ -370,7 +485,25 @@
         let parents = await getParents(), students = await getStudents();
         let childrenMap = {};
         students.forEach(s => { if (s.parentId) childrenMap[s.parentId] = [...(childrenMap[s.parentId] || []), s.fullName]; });
-        let html = `<button id="addParentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><div class="card">${parents.map(p => `<div><strong>${p.name}</strong> (${p.phone || ''}) - Enfants: ${childrenMap[p.id]?.join(', ') || 'aucun'} <button data-id="${p.id}" class="editParentBtn btn-sm btn-outline">✏️</button> <button data-id="${p.id}" class="deleteParentBtn btn-sm btn-danger">🗑️</button></div><hr>`).join('')}</div>`;
+        let html = `<div class="flex-between"><h2>${t('parents')}</h2><button id="addParentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button></div>
+        <div class="card"><div class="table-wrapper">
+        <table>
+            <thead><tr><th>Nom</th><th>Téléphone</th><th>Enfants</th><th>Actions</th></tr></thead>
+            <tbody>
+                ${parents.map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.phone || ''}</td>
+                        <td>${childrenMap[p.id]?.join(', ') || 'aucun'}</td>
+                        <td>
+                            <button data-id="${p.id}" class="editParentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button>
+                            <button data-id="${p.id}" class="deleteParentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        ~
+        </div></div>`;
         document.getElementById('parentsPanel').innerHTML = html;
         document.getElementById('addParentBtn')?.addEventListener('click', () => openModal("Ajouter parent", [{ id: "name", label: "Nom" }, { id: "phone", label: "Téléphone" }], async (data) => { await setDoc(doc(getSubCol('parents')), { name: data.name, phone: data.phone }); showToast("Ajouté"); renderParents(); }));
         document.querySelectorAll('.editParentBtn').forEach(btn => btn.addEventListener('click', async () => { let p = (await getParents()).find(p => p.id === btn.dataset.id); openModal("Modifier parent", [{ id: "name", label: "Nom", value: p.name }, { id: "phone", label: "Téléphone", value: p.phone }], async (data) => { await setDoc(doc(getSubCol('parents'), btn.dataset.id), { name: data.name, phone: data.phone }); showToast("Modifié"); renderParents(); }); }));
@@ -382,9 +515,25 @@
         let studentMap = Object.fromEntries(students.map(s => [s.id, s.fullName]));
         let levelsGroup = {};
         payments.forEach(p => { if (!levelsGroup[p.level]) levelsGroup[p.level] = 0; levelsGroup[p.level] += Number(p.amount); });
-        let html = `<div class="flex-between"><button id="addPaymentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><button id="pdfInvoiceBtn" class="btn btn-sm btn-outline">Facture sélectionnée</button></div>
-        <div class="card"><h3>Sous-totaux par niveau</h3>${Object.entries(levelsGroup).map(([lvl, sum]) => `<div>${lvl}: ${sum} DH</div>`).join('')}<h3>Historique</h3>
-        <div class="scroll-x">能able><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead><tbody>${payments.map(p => `<tr><td><input type="radio" name="selectedPayment" value="${p.id}"></td><td>${studentMap[p.studentId] || '?'}</td><td>${p.amount} DH</td><td>${p.date}</td><td>${p.level}</td><td><button class="singleInvoiceBtn" data-id="${p.id}">📄 PDF</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        let html = `<div class="flex-between"><h2>${t('payments')}</h2><div><button id="addPaymentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><button id="pdfInvoiceBtn" class="btn btn-sm btn-outline" style="margin-left:0.5rem">Facture sélectionnée</button></div></div>
+        <div class="card"><h3>Sous-totaux par niveau</h3><div class="grid-2" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${Object.entries(levelsGroup).map(([lvl, sum]) => `<div>${lvl}: <strong>${sum} DH</strong></div>`).join('')}</div>
+        <h3 style="margin-top:1rem">Historique</h3><div class="table-wrapper">
+        <table>
+            <thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead>
+            <tbody>
+                ${payments.map(p => `
+                    <tr>
+                        <td><input type="radio" name="selectedPayment" value="${p.id}"></td>
+                        <td>${studentMap[p.studentId] || '?'}</td>
+                        <td>${p.amount} DH</td>
+                        <td>${p.date}</td>
+                        <td>${p.level}</td>
+                        <td><button class="singleInvoiceBtn" data-id="${p.id}" class="btn-sm btn-outline">📄 PDF</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        </div></div>`;
         document.getElementById('paymentsPanel').innerHTML = html;
         document.getElementById('addPaymentBtn')?.addEventListener('click', async () => {
             let studentsList = await getStudents();
@@ -398,6 +547,8 @@
             const payment = payments.find(p => p.id === btn.dataset.id);
             const student = students.find(s => s.id === payment.studentId);
             const doc = new jsPDF();
+            doc.setFillColor(17,24,39); doc.rect(0,0,210,297,'F');
+            doc.setTextColor(255,255,255);
             doc.text(`Facture de paiement - ${student?.fullName}`, 20, 20);
             doc.text(`Montant : ${payment.amount} DH`, 20, 40);
             doc.text(`Date : ${payment.date}`, 20, 50);
@@ -409,18 +560,29 @@
 
     async function renderProfs() {
         let profs = await getProfs();
-        let html = `<button id="addProfBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><div class="card">`;
-        for (let p of profs) {
-            let sessions = await getSessions(p.id);
-            let currentMonth = new Date().toISOString().slice(0, 7);
-            let monthSessions = sessions.filter(s => s.month === currentMonth).reduce((a, b) => a + Number(b.count), 0);
-            html += `<div><strong>${p.name}</strong> (${p.subject}) - Sessions ce mois: ${monthSessions} <button class="addSessionBtn" data-id="${p.id}" class="btn-sm btn-outline">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}" class="btn-sm btn-danger">🗑️</button></div><hr>`;
-        }
-        html += `</div>`;
+        let html = `<div class="flex-between"><h2>${t('teachers')}</h2><button id="addProfBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button></div>
+        <div class="card"><div class="table-wrapper">
+        <table>
+            <thead><tr><th>Nom</th><th>Matière</th><th>Sessions ce mois</th><th>Actions</th></tr></thead>
+            <tbody>
+                ${await Promise.all(profs.map(async p => {
+                    let sessions = await getSessions(p.id);
+                    let currentMonth = new Date().toISOString().slice(0,7);
+                    let monthSessions = sessions.filter(s => s.month === currentMonth).reduce((a,b)=>a+Number(b.count),0);
+                    return `<tr>
+                        <td>${p.name}</td>
+                        <td>${p.subject}</td>
+                        <td>${monthSessions}</td>
+                        <td><button class="addSessionBtn" data-id="${p.id}" class="btn-sm btn-outline">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}" class="btn-sm btn-danger">🗑️</button></td>
+                    </tr>`;
+                }))}
+            </tbody>
+        </table>
+        </div></div>`;
         document.getElementById('profsPanel').innerHTML = html;
         document.getElementById('addProfBtn')?.addEventListener('click', () => openModal("Ajouter professeur", [{ id: "name", label: "Nom" }, { id: "subject", label: "Matière" }], async (data) => { await setDoc(doc(getSubCol('profs')), { name: data.name, subject: data.subject }); showToast("Ajouté"); renderProfs(); }));
         document.querySelectorAll('.addSessionBtn').forEach(btn => btn.addEventListener('click', async () => {
-            let profId = btn.dataset.id; let month = prompt("Mois (YYYY-MM)", new Date().toISOString().slice(0, 7)); let count = prompt("Nombre de séances");
+            let profId = btn.dataset.id; let month = prompt("Mois (YYYY-MM)", new Date().toISOString().slice(0,7)); let count = prompt("Nombre de séances");
             if (month && count) await setDoc(doc(collection(db, `centres/${currentUser.uid}/years/${activeYearId}/profs/${profId}/sessions`)), { month, count: Number(count) });
             renderProfs();
         }));
@@ -429,7 +591,23 @@
 
     async function renderExpenses() {
         let expenses = await getExpenses();
-        let html = `<button id="addExpenseBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><div class="card"><div class="scroll-x">能able><thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead><tbody>${expenses.map(e => `<tr><td>${e.desc}</td><td>${e.amount} DH</td><td>${e.date}</td><td>${e.category}</td><td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button> </tr>`).join('')}</tbody></table></div></div>`;
+        let html = `<div class="flex-between"><h2>${t('expenses')}</h2><button id="addExpenseBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button></div>
+        <div class="card"><div class="table-wrapper">
+        <table>
+            <thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead>
+            <tbody>
+                ${expenses.map(e => `
+                    <tr>
+                        <td>${e.desc}</td>
+                        <td>${e.amount} DH</td>
+                        <td>${e.date}</td>
+                        <td>${e.category}</td>
+                        <td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        </div></div>`;
         document.getElementById('expensesPanel').innerHTML = html;
         document.getElementById('addExpenseBtn')?.addEventListener('click', () => openModal("Ajouter dépense", [{ id: "desc", label: "Description" }, { id: "amount", label: "Montant" }, { id: "date", label: "Date YYYY-MM-DD" }, { id: "category", label: "Catégorie" }], async (data) => { await setDoc(doc(getSubCol('depenses')), { desc: data.desc, amount: Number(data.amount), date: data.date, category: data.category }); showToast("Ajoutée"); renderExpenses(); }));
         document.querySelectorAll('.deleteExpenseBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('depenses'), btn.dataset.id)); showToast("Supprimée"); renderExpenses(); } }));
@@ -439,9 +617,24 @@
         let scheduleSnap = await getDocs(getSubCol('schedule'));
         let entries = scheduleSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         let levels = ['Primaire', 'Collège', 'Lycée', 'Supérieur'];
-        let html = `<button id="addScheduleBtn" class="btn"><i class="fas fa-plus"></i> Ajouter cours</button>`;
+        let html = `<div class="flex-between"><h2>${t('schedule')}</h2><button id="addScheduleBtn" class="btn"><i class="fas fa-plus"></i> Ajouter cours</button></div>`;
         for (let lvl of levels) {
-            html += `<div class="card"><h3>${lvl}</h3><div class="scroll-x">能able><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Prof</th><th></th></tr></thead><tbody>${entries.filter(e => e.level === lvl).map(e => `<tr><td>${e.day}</td><td>${e.timeSlot}</td><td>${e.subject}</td><td>${e.profName || ''}</td><td><button class="delSchedBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`).join('')}</tbody></table></div></div>`;
+            html += `<div class="card"><h3>${lvl}</h3><div class="table-wrapper">
+            <table>
+                <thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Professeur</th><th></th></tr></thead>
+                <tbody>
+                    ${entries.filter(e => e.level === lvl).map(e => `
+                        <tr>
+                            <td>${e.day}</td>
+                            <td>${e.timeSlot}</td>
+                            <td>${e.subject}</td>
+                            <td>${e.profName || ''}</td>
+                            <td><button class="delSchedBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            ~
+            </div></div>`;
         }
         document.getElementById('schedulePanel').innerHTML = html;
         document.getElementById('addScheduleBtn')?.addEventListener('click', () => openModal("Ajouter cours", [{ id: "level", label: "Niveau" }, { id: "day", label: "Jour" }, { id: "timeSlot", label: "Horaire" }, { id: "subject", label: "Matière" }, { id: "profName", label: "Professeur" }], async (data) => { await setDoc(doc(getSubCol('schedule')), { level: data.level, day: data.day, timeSlot: data.timeSlot, subject: data.subject, profName: data.profName }); showToast("Cours ajouté"); renderSchedule(); }));
@@ -453,10 +646,25 @@
         let students = await getStudents(), profs = await getProfs();
         let studentMap = Object.fromEntries(students.map(s => [s.id, s.fullName]));
         let profMap = Object.fromEntries(profs.map(p => [p.id, p.name]));
-        let html = `<div class="flex-between"><h3>Réservations</h3><button id="addReservationBtn" class="btn"><i class="fas fa-plus"></i> Nouvelle réservation</button></div>
-        <div class="card"><div class="scroll-x">能able><thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${
-            reservations.map(r => `<tr><td>${r.date}</td><td>${r.timeSlot}</td><td>${studentMap[r.studentId] || ''}</td><td>${profMap[r.profId] || ''}</td><td>${r.level || ''}</td><td>${r.status}</td><td><button class="validateResBtn" data-id="${r.id}" ${r.status === 'validé' ? 'disabled' : ''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button> </tr>`).join('')
-        }</tbody></table></div></div>`;
+        let html = `<div class="flex-between"><h2>Réservations</h2><button id="addReservationBtn" class="btn"><i class="fas fa-plus"></i> Nouvelle réservation</button></div>
+        <div class="card"><div class="table-wrapper">
+        <table>
+            <thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody>
+                ${reservations.map(r => `
+                    <tr>
+                        <td>${r.date}</td>
+                        <td>${r.timeSlot}</td>
+                        <td>${studentMap[r.studentId] || ''}</td>
+                        <td>${profMap[r.profId] || ''}</td>
+                        <td>${r.level || ''}</td>
+                        <td>${r.status}</td>
+                        <td><button class="validateResBtn" data-id="${r.id}" ${r.status === 'validé' ? 'disabled' : ''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        </div></div>`;
         document.getElementById('planningPanel').innerHTML = html;
         document.getElementById('addReservationBtn')?.addEventListener('click', async () => {
             let studentsList = await getStudents(); let profsList = await getProfs();
@@ -477,10 +685,26 @@
 
     async function renderInvoices() {
         let invoices = await getInvoices(), students = await getStudents();
-        let html = `<div class="flex-between"><h3>Factures</h3><button id="createInvoiceBtn" class="btn"><i class="fas fa-plus"></i> Créer une facture</button><button id="payOnlineBtn" class="btn btn-sm btn-outline">Payer en ligne (test)</button></div>
-        <div class="card"><div class="scroll-x">能able><thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead><tbody>${
-            invoices.map(i => `<tr><td>${i.number}</td><td>${students.find(s => s.id === i.studentId)?.fullName}</td><td>${i.amountHT} DH</td><td>${i.tva}%</td><td>${i.totalTTC} DH</td><td>${i.dueDate}</td><td>${i.status}</td><td><button class="pdfInvoiceBtn" data-id="${i.id}">PDF</button> </tr>`).join('')
-        }</tbody></table></div></div>`;
+        let html = `<div class="flex-between"><h2>Factures</h2><div><button id="createInvoiceBtn" class="btn"><i class="fas fa-plus"></i> Créer une facture</button><button id="payOnlineBtn" class="btn btn-sm btn-outline" style="margin-left:0.5rem">Payer en ligne (test)</button></div></div>
+        <div class="card"><div class="table-wrapper">
+        <table>
+            <thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead>
+            <tbody>
+                ${invoices.map(i => `
+                    <tr>
+                        <td>${i.number}</td>
+                        <td>${students.find(s => s.id === i.studentId)?.fullName}</td>
+                        <td>${i.amountHT} DH</td>
+                        <td>${i.tva}%</td>
+                        <td>${i.totalTTC} DH</td>
+                        <td>${i.dueDate}</td>
+                        <td>${i.status}</td>
+                        <td><button class="pdfInvoiceBtn" data-id="${i.id}" class="btn-sm btn-outline">PDF</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        </div></div>`;
         document.getElementById('invoicesPanel').innerHTML = html;
         document.getElementById('createInvoiceBtn')?.addEventListener('click', async () => {
             let studentId = prompt("ID élève"); let amountHT = prompt("Montant HT"); let tva = prompt("TVA (%)", "20"); let dueDate = prompt("Date d'échéance (YYYY-MM-DD)");
@@ -491,7 +715,8 @@
         document.getElementById('payOnlineBtn')?.addEventListener('click', () => { showToast("Mode test - Stripe à configurer"); });
         document.querySelectorAll('.pdfInvoiceBtn').forEach(btn => btn.addEventListener('click', async () => {
             const { jsPDF } = window.jspdf; const invoice = (await getInvoices()).find(i => i.id === btn.dataset.id); const student = (await getStudents()).find(s => s.id === invoice.studentId);
-            const doc = new jsPDF(); doc.text(`Facture ${invoice.number}`, 20, 20); doc.text(`Élève : ${student.fullName}`, 20, 40); doc.text(`Montant HT : ${invoice.amountHT} DH`, 20, 50); doc.text(`TVA : ${invoice.tva}%`, 20, 60); doc.text(`Total TTC : ${invoice.totalTTC} DH`, 20, 70); doc.text(`Échéance : ${invoice.dueDate}`, 20, 80); doc.save(`facture_${invoice.number}.pdf`);
+            const doc = new jsPDF(); doc.setFillColor(17,24,39); doc.rect(0,0,210,297,'F'); doc.setTextColor(255,255,255);
+            doc.text(`Facture ${invoice.number}`, 20, 20); doc.text(`Élève : ${student.fullName}`, 20, 40); doc.text(`Montant HT : ${invoice.amountHT} DH`, 20, 50); doc.text(`TVA : ${invoice.tva}%`, 20, 60); doc.text(`Total TTC : ${invoice.totalTTC} DH`, 20, 70); doc.text(`Échéance : ${invoice.dueDate}`, 20, 80); doc.save(`facture_${invoice.number}.pdf`);
         }));
     }
 
@@ -515,18 +740,18 @@
         refreshCurrentPanel();
     }
 
-    // Construction de l'interface principale
+    // Construction interface principale
     function buildAppUI() {
         document.getElementById('appContainer').innerHTML = `
-            <div class="flex-between" style="margin-bottom: 1rem;">
-                <h2><i class="fas fa-graduation-cap"></i> <span data-i18n="appName">Centre Astuces</span></h2>
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h1 style="font-size:1.8rem; background:linear-gradient(135deg,#FFF, #8B5CF6); -webkit-background-clip:text; background-clip:text; color:transparent;"><i class="fas fa-graduation-cap"></i> Centre Astuces</h1>
                 <div>
-                    <select id="langSelect" class="lang-select"><option value="fr">🇫🇷</option><option value="en">🇬🇧</option><option value="ar">🇸🇦</option></select>
+                    <select id="langSelect" class="lang-select"><option value="fr">🇫🇷 FR</option><option value="en">🇬🇧 EN</option><option value="ar">🇸🇦 AR</option></select>
                     <button id="logoutBtn" class="btn btn-sm btn-outline"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
             <div class="flex-between" style="margin-bottom: 1rem;">
-                <div><strong>Année active :</strong> <span id="activeYearLabel">-</span></div>
+                <div><strong>📆 Année active :</strong> <span id="activeYearLabel" style="color:var(--primary)">-</span></div>
                 <div><button id="manageYearsBtn" class="btn btn-sm"><i class="fas fa-calendar-alt"></i> Gérer années</button>
                 <button id="backupExportBtn" class="btn btn-sm btn-outline"><i class="fas fa-download"></i> JSON</button>
                 <button id="backupImportBtn" class="btn btn-sm btn-outline"><i class="fas fa-upload"></i> Importer</button></div>
@@ -578,8 +803,8 @@
     function renderAuth() {
         document.getElementById('authWrapper').innerHTML = `
             <div class="auth-card">
-                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-chalkboard-user"></i> Centre Astuces</h2>
-                <div id="authTabs" class="flex-between" style="margin-bottom: 1rem;">
+                <h2 style="margin-bottom: 1rem;"><i class="fas fa-chalkboard-user"></i> Centre Astuces</h2>
+                <div id="authTabs" class="flex-between" style="margin-bottom: 1.5rem;">
                     <button id="showLoginBtn" class="btn btn-outline" style="flex:1; margin-right:0.5rem;">Connexion</button>
                     <button id="showSignupBtn" class="btn btn-outline" style="flex:1;">Inscription</button>
                 </div>
