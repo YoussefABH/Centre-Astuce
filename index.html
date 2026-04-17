@@ -2,39 +2,228 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centre Astuces - Diagnostic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Centre Astuces - Gestion de soutien scolaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: Arial; padding: 2rem; background: #f0f2f5; }
-        .card { background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 2rem; cursor: pointer; }
-        input { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f3f4f6;
+            color: #1f2937;
+            padding-bottom: 85px;
+        }
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e5e7eb;
+            --card-bg: #ffffff;
+            --text-muted: #6b7280;
+            --shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        /* Auth */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        /* App */
+        .app-container {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 1rem 5rem;
+        }
+        /* Bottom navigation (plus grande) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0.5rem;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-item i { font-size: 1.5rem; }
+        .nav-item.active {
+            color: var(--primary);
+            background: #eef2ff;
+        }
+        /* Panels */
+        .panel { display: none; animation: fadeIn 0.2s ease; }
+        .panel.active-panel { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+        /* Cartes */
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .btn {
+            background: var(--primary);
+            border: none;
+            padding: 0.65rem 1.3rem;
+            border-radius: 2rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: #1f2937;
+        }
+        .btn-danger { background: var(--danger); }
+        .btn-sm { padding: 0.4rem 1rem; font-size: 0.8rem; }
+        input, select, textarea {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 0.7rem 1rem;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.9rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 3rem;
+            z-index: 2000;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.8rem 0.4rem; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.9rem; }
+        th { font-weight: 600; color: var(--text-muted); }
+        .scroll-x { overflow-x: auto; }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .lang-select {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+        }
+        @media (max-width: 640px) {
+            .nav-item span { display: none; }
+            .nav-item i { font-size: 1.6rem; }
+            .btn { padding: 0.5rem 1rem; }
+        }
     </style>
 </head>
 <body>
-<div id="app">
-    <div class="card">
-        <h2>Centre Astuces - Diagnostic</h2>
-        <p>Si vous voyez ce message, le fichier HTML s'affiche correctement.</p>
-        <p>Vérifiez maintenant que vous ouvrez ce fichier via <strong>http://localhost</strong> (pas directement file://).</p>
-        <button id="testBtn" class="btn">Tester Firebase</button>
-        <div id="result"></div>
-    </div>
-</div>
+<div id="authWrapper" class="auth-container"></div>
+<div id="appContainer" class="app-container"></div>
 
 <script type="importmap">
     {
         "imports": {
             "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
         }
     }
 </script>
 <script type="module">
     import { initializeApp } from "firebase/app";
-    import { getAuth, signInAnonymously } from "firebase/auth";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+    import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, setDoc, getDocs, getDoc, deleteDoc, updateDoc, writeBatch } from "firebase/firestore";
 
-    // REMPLACEZ PAR VOS IDENTIFIANTS FIREBASE
+    // ========== 🔥 CONFIGURATION FIREBASE (À REMPLACER) ==========
     const firebaseConfig = {
   apiKey: "AIzaSyBuCpcHui188EL9O2g2no1f36NSBb-Hfig",
   authDomain: "centre-astuces.firebaseapp.com",
@@ -43,17 +232,381 @@
   messagingSenderId: "477248068455",
   appId: "1:477248068455:web:14861a2ea11a059878edc2"
 };
+    // ============================================================
 
-    document.getElementById('testBtn').onclick = async () => {
-        try {
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            await signInAnonymously(auth);
-            document.getElementById('result').innerHTML = '<p style="color:green">✅ Firebase fonctionne ! Vous pouvez maintenant utiliser l\'application complète.</p>';
-        } catch (err) {
-            document.getElementById('result').innerHTML = `<p style="color:red">❌ Erreur : ${err.message}. Vérifiez vos clés Firebase et que vous êtes sur http://localhost.</p>`;
-        }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = initializeFirestore(app, { localCache: persistentLocalCache() });
+
+    let currentUser = null;
+    let activeYearId = null;
+    let yearsList = [];
+    let currentChart = null;
+    let currentLang = localStorage.getItem('lang') || 'fr';
+
+    const translations = {
+        fr: { appName: "Centre Astuces", dashboard: "Tableau de bord", students: "Élèves", parents: "Parents", payments: "Paiements", teachers: "Professeurs", expenses: "Dépenses", schedule: "Emploi du temps", planning: "Réservations", invoices: "Factures", add: "Ajouter", edit: "Modifier", delete: "Supprimer", cancel: "Annuler", confirm: "Confirmer", search: "Rechercher" },
+        en: { appName: "Tutoring Center", dashboard: "Dashboard", students: "Students", parents: "Parents", payments: "Payments", teachers: "Teachers", expenses: "Expenses", schedule: "Schedule", planning: "Bookings", invoices: "Invoices", add: "Add", edit: "Edit", delete: "Delete", cancel: "Cancel", confirm: "Confirm", search: "Search" },
+        ar: { appName: "مركز أستيوز", dashboard: "لوحة القيادة", students: "الطلاب", parents: "أولياء الأمور", payments: "المدفوعات", teachers: "الأساتذة", expenses: "المصروفات", schedule: "الجدول", planning: "الحجوزات", invoices: "الفواتير", add: "إضافة", edit: "تعديل", delete: "حذف", cancel: "إلغاء", confirm: "تأكيد", search: "بحث" }
     };
+    function t(key) { return translations[currentLang][key] || key; }
+
+    function showToast(msg, type = "info") {
+        let t = document.querySelector('.toast'); if (t) t.remove();
+        let div = document.createElement('div'); div.className = 'toast'; div.innerText = msg;
+        div.style.background = type === 'error' ? '#dc2626' : '#1f2937';
+        document.body.appendChild(div); setTimeout(() => div.remove(), 3000);
+    }
+    function loading(show = true) {
+        let l = document.getElementById('loader');
+        if (!l && show) { let d = document.createElement('div'); d.id = 'loader'; d.className = 'loading-overlay'; d.innerHTML = '<div class="card">Chargement...</div>'; document.body.appendChild(d); }
+        else if (l && !show) l.remove();
+    }
+    function getYearRef() { if (!currentUser || !activeYearId) return null; return doc(db, `centres/${currentUser.uid}/years/${activeYearId}`); }
+    function getSubCol(name) { return collection(getYearRef(), name); }
+
+    // Récupération des données
+    async function getStudents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('eleves')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getParents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('parents')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getPayments() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('paiements')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getProfs() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('profs')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getExpenses() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('depenses')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getSessions(profId) { const snap = await getDocs(collection(db, `centres/${currentUser.uid}/years/${activeYearId}/profs/${profId}/sessions`)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getReservations() { const snap = await getDocs(collection(db, `centres/${currentUser.uid}/reservations`)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getInvoices() { const snap = await getDocs(collection(db, `centres/${currentUser.uid}/invoices`)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+
+    // Gestion des années
+    async function loadYearsAndActive() {
+        if (!currentUser) return;
+        loading(true);
+        const yearsCol = collection(db, `centres/${currentUser.uid}/years`);
+        const snap = await getDocs(yearsCol);
+        yearsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const active = yearsList.find(y => y.active === true);
+        if (active) activeYearId = active.id;
+        else if (yearsList.length) { activeYearId = yearsList[0].id; await setDoc(doc(db, `centres/${currentUser.uid}/years/${activeYearId}`), { active: true, name: yearsList[0].name }, { merge: true }); }
+        else activeYearId = null;
+        const label = document.getElementById('activeYearLabel');
+        if (label) label.innerText = activeYearId ? (yearsList.find(y => y.id === activeYearId)?.name || 'Année') : 'Aucune';
+        loading(false);
+        refreshCurrentPanel();
+    }
+    async function openYearModal() {
+        let name = prompt("Nom année scolaire (ex: 2024-2025)");
+        if (!name) return;
+        loading(true);
+        const yearRef = doc(collection(db, `centres/${currentUser.uid}/years`));
+        await setDoc(yearRef, { name, active: yearsList.length === 0, createdAt: new Date() });
+        await loadYearsAndActive();
+        showToast("Année créée");
+    }
+
+    // Modale générique
+    function openModal(title, fields, onSubmit) {
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'modal';
+        let html = `<div class="modal-content"><h3>${title}</h3>`;
+        fields.forEach(f => { html += `<label>${f.label}</label><input type="${f.type || 'text'}" id="modal_${f.id}" value="${f.value || ''}" placeholder="${f.placeholder || ''}">`; });
+        html += `<div class="flex-between" style="margin-top:1rem;"><button id="modalCancel" class="btn btn-outline">${t('cancel')}</button><button id="modalConfirm" class="btn">${t('confirm')}</button></div></div>`;
+        modalDiv.innerHTML = html;
+        document.body.appendChild(modalDiv);
+        modalDiv.querySelector('#modalCancel').onclick = () => modalDiv.remove();
+        modalDiv.querySelector('#modalConfirm').onclick = async () => {
+            const data = {};
+            fields.forEach(f => { data[f.id] = document.getElementById(`modal_${f.id}`).value; });
+            modalDiv.remove();
+            await onSubmit(data);
+        };
+    }
+
+    // ========== RENDU DES PANNEAUX ==========
+    async function renderDashboard() {
+        if (!activeYearId) { document.getElementById('dashboardPanel').innerHTML = '<div class="card">Sélectionnez ou créez une année scolaire</div>'; return; }
+        loading(true);
+        const payments = await getPayments(), expenses = await getExpenses(), students = await getStudents();
+        const totalRev = payments.reduce((a, b) => a + Number(b.amount), 0);
+        const totalExp = expenses.reduce((a, b) => a + Number(b.amount), 0);
+        const profit = totalRev - totalExp;
+        const levels = ['Primaire', 'Collège', 'Lycée', 'Supérieur'];
+        const levelStats = levels.map(l => payments.filter(p => p.level === l).reduce((a, b) => a + Number(b.amount), 0));
+        let widgetConfig = JSON.parse(localStorage.getItem('widgetConfig') || '{"revenue":true,"expenses":true,"profit":true,"studentsCount":true,"chart":true}');
+        let html = `<div class="flex-between"><h3>${t('dashboard')}</h3><button id="configWidgetsBtn" class="btn btn-sm">Configurer widgets</button><button id="exportCSVBtn" class="btn btn-sm btn-outline">Export CSV</button></div>
+        <div class="grid-2" id="widgetsContainer">
+            ${widgetConfig.revenue ? `<div class="card"><h3>💰 Revenus</h3><p class="stat">${totalRev} DH</p></div>` : ''}
+            ${widgetConfig.expenses ? `<div class="card"><h3>📉 Dépenses</h3><p class="stat">${totalExp} DH</p></div>` : ''}
+            ${widgetConfig.profit ? `<div class="card"><h3>📈 Bénéfice</h3><p class="stat">${profit} DH</p></div>` : ''}
+            ${widgetConfig.studentsCount ? `<div class="card"><h3>👩‍🎓 Élèves</h3><p class="stat">${students.length}</p></div>` : ''}
+            ${widgetConfig.chart ? `<div class="card"><canvas id="levelChart" width="300" height="200"></canvas></div>` : ''}
+        </div>`;
+        document.getElementById('dashboardPanel').innerHTML = html;
+        const canvas = document.getElementById('levelChart');
+        if (canvas && currentChart) currentChart.destroy();
+        if (canvas) currentChart = new Chart(canvas, { type: 'bar', data: { labels: levels, datasets: [{ label: 'Montant (DH)', data: levelStats, backgroundColor: '#4f46e5' }] } });
+        document.getElementById('configWidgetsBtn')?.addEventListener('click', () => {
+            let newConfig = { revenue: confirm("Afficher revenus ?"), expenses: confirm("Afficher dépenses ?"), profit: confirm("Afficher bénéfice ?"), studentsCount: confirm("Afficher nombre d'élèves ?"), chart: confirm("Afficher graphique ?") };
+            localStorage.setItem('widgetConfig', JSON.stringify(newConfig));
+            renderDashboard();
+        });
+        document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
+            let csv = "Type,Valeur\nRevenus," + totalRev + "\nDépenses," + totalExp + "\nBénéfice," + profit + "\nÉlèves," + students.length;
+            const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "dashboard.csv"; a.click();
+        });
+        loading(false);
+    }
+
+    async function renderStudents() {
+        let students = await getStudents(), parents = await getParents();
+        const parentMap = Object.fromEntries(parents.map(p => [p.id, p.name]));
+        let html = `<div class="flex-between"><h3>${t('students')}</h3><button id="addStudentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button></div>
+        <input type="text" id="searchStudent" placeholder="${t('search')}...">
+        <div class="card"><div class="scroll-x">能able><thead><tr><th>Nom</th><th>Niveau</th><th>Téléphone</th><th>Parent</th><th>Actions</th></tr></thead><tbody>${students.map(s => `<tr><td>${s.fullName}</td><td>${s.level}</td><td>${s.phone || ''}</td><td>${parentMap[s.parentId] || '—'}</td><td><button data-id="${s.id}" class="editStudentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${s.id}" class="deleteStudentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+        document.getElementById('studentsPanel').innerHTML = html;
+        document.getElementById('addStudentBtn')?.addEventListener('click', () => openModal("Ajouter élève", [{ id: "name", label: "Nom complet" }, { id: "level", label: "Niveau" }, { id: "phone", label: "Téléphone" }, { id: "parentId", label: "ID Parent (optionnel)" }], async (data) => { await setDoc(doc(getSubCol('eleves')), { fullName: data.name, level: data.level, phone: data.phone, parentId: data.parentId }); showToast("Ajouté"); renderStudents(); }));
+        document.querySelectorAll('.editStudentBtn').forEach(btn => btn.addEventListener('click', async () => { let s = (await getStudents()).find(s => s.id === btn.dataset.id); openModal("Modifier élève", [{ id: "name", label: "Nom", value: s.fullName }, { id: "level", label: "Niveau", value: s.level }, { id: "phone", label: "Téléphone", value: s.phone }, { id: "parentId", label: "Parent ID", value: s.parentId }], async (data) => { await setDoc(doc(getSubCol('eleves'), btn.dataset.id), { fullName: data.name, level: data.level, phone: data.phone, parentId: data.parentId }); showToast("Modifié"); renderStudents(); }); }));
+        document.querySelectorAll('.deleteStudentBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('eleves'), btn.dataset.id)); showToast("Supprimé"); renderStudents(); } }));
+    }
+
+    async function renderParents() {
+        let parents = await getParents(), students = await getStudents();
+        let childrenMap = {};
+        students.forEach(s => { if (s.parentId) childrenMap[s.parentId] = [...(childrenMap[s.parentId] || []), s.fullName]; });
+        let html = `<button id="addParentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><div class="card">${parents.map(p => `<div><strong>${p.name}</strong> (${p.phone || ''}) - Enfants: ${childrenMap[p.id]?.join(', ') || 'aucun'} <button data-id="${p.id}" class="editParentBtn btn-sm btn-outline">✏️</button> <button data-id="${p.id}" class="deleteParentBtn btn-sm btn-danger">🗑️</button></div><hr>`).join('')}</div>`;
+        document.getElementById('parentsPanel').innerHTML = html;
+        document.getElementById('addParentBtn')?.addEventListener('click', () => openModal("Ajouter parent", [{ id: "name", label: "Nom" }, { id: "phone", label: "Téléphone" }], async (data) => { await setDoc(doc(getSubCol('parents')), { name: data.name, phone: data.phone }); showToast("Ajouté"); renderParents(); }));
+        document.querySelectorAll('.editParentBtn').forEach(btn => btn.addEventListener('click', async () => { let p = (await getParents()).find(p => p.id === btn.dataset.id); openModal("Modifier parent", [{ id: "name", label: "Nom", value: p.name }, { id: "phone", label: "Téléphone", value: p.phone }], async (data) => { await setDoc(doc(getSubCol('parents'), btn.dataset.id), { name: data.name, phone: data.phone }); showToast("Modifié"); renderParents(); }); }));
+        document.querySelectorAll('.deleteParentBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('parents'), btn.dataset.id)); showToast("Supprimé"); renderParents(); } }));
+    }
+
+    async function renderPayments() {
+        let payments = await getPayments(), students = await getStudents();
+        let studentMap = Object.fromEntries(students.map(s => [s.id, s.fullName]));
+        let levelsGroup = {};
+        payments.forEach(p => { if (!levelsGroup[p.level]) levelsGroup[p.level] = 0; levelsGroup[p.level] += Number(p.amount); });
+        let html = `<div class="flex-between"><button id="addPaymentBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><button id="pdfInvoiceBtn" class="btn btn-sm btn-outline">Facture sélectionnée</button></div>
+        <div class="card"><h3>Sous-totaux par niveau</h3>${Object.entries(levelsGroup).map(([lvl, sum]) => `<div>${lvl}: ${sum} DH</div>`).join('')}<h3>Historique</h3>
+        <div class="scroll-x">能able><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead><tbody>${payments.map(p => `<tr><td><input type="radio" name="selectedPayment" value="${p.id}"></td><td>${studentMap[p.studentId] || '?'}</td><td>${p.amount} DH</td><td>${p.date}</td><td>${p.level}</td><td><button class="singleInvoiceBtn" data-id="${p.id}">📄 PDF</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        document.getElementById('paymentsPanel').innerHTML = html;
+        document.getElementById('addPaymentBtn')?.addEventListener('click', async () => {
+            let studentsList = await getStudents();
+            let studentId = prompt("ID élève : " + studentsList.map(s => s.id + ":" + s.fullName).join(", "));
+            let amount = prompt("Montant"); let date = prompt("Date YYYY-MM-DD", new Date().toISOString().slice(0, 10));
+            let student = studentsList.find(s => s.id === studentId);
+            if (student && amount) { await setDoc(doc(getSubCol('paiements')), { studentId, amount: Number(amount), date, level: student.level }); showToast("Paiement ajouté"); renderPayments(); }
+        });
+        document.querySelectorAll('.singleInvoiceBtn').forEach(btn => btn.addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+            const payment = payments.find(p => p.id === btn.dataset.id);
+            const student = students.find(s => s.id === payment.studentId);
+            const doc = new jsPDF();
+            doc.text(`Facture de paiement - ${student?.fullName}`, 20, 20);
+            doc.text(`Montant : ${payment.amount} DH`, 20, 40);
+            doc.text(`Date : ${payment.date}`, 20, 50);
+            doc.text(`Niveau : ${payment.level}`, 20, 60);
+            doc.save(`facture_${payment.id}.pdf`);
+        }));
+        document.getElementById('pdfInvoiceBtn')?.addEventListener('click', () => { let selected = document.querySelector('input[name="selectedPayment"]:checked'); if (selected) document.querySelector(`.singleInvoiceBtn[data-id="${selected.value}"]`).click(); else showToast("Sélectionnez un paiement"); });
+    }
+
+    async function renderProfs() {
+        let profs = await getProfs();
+        let html = `<button id="addProfBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><div class="card">`;
+        for (let p of profs) {
+            let sessions = await getSessions(p.id);
+            let currentMonth = new Date().toISOString().slice(0, 7);
+            let monthSessions = sessions.filter(s => s.month === currentMonth).reduce((a, b) => a + Number(b.count), 0);
+            html += `<div><strong>${p.name}</strong> (${p.subject}) - Sessions ce mois: ${monthSessions} <button class="addSessionBtn" data-id="${p.id}" class="btn-sm btn-outline">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}" class="btn-sm btn-danger">🗑️</button></div><hr>`;
+        }
+        html += `</div>`;
+        document.getElementById('profsPanel').innerHTML = html;
+        document.getElementById('addProfBtn')?.addEventListener('click', () => openModal("Ajouter professeur", [{ id: "name", label: "Nom" }, { id: "subject", label: "Matière" }], async (data) => { await setDoc(doc(getSubCol('profs')), { name: data.name, subject: data.subject }); showToast("Ajouté"); renderProfs(); }));
+        document.querySelectorAll('.addSessionBtn').forEach(btn => btn.addEventListener('click', async () => {
+            let profId = btn.dataset.id; let month = prompt("Mois (YYYY-MM)", new Date().toISOString().slice(0, 7)); let count = prompt("Nombre de séances");
+            if (month && count) await setDoc(doc(collection(db, `centres/${currentUser.uid}/years/${activeYearId}/profs/${profId}/sessions`)), { month, count: Number(count) });
+            renderProfs();
+        }));
+        document.querySelectorAll('.deleteProfBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('profs'), btn.dataset.id)); showToast("Supprimé"); renderProfs(); } }));
+    }
+
+    async function renderExpenses() {
+        let expenses = await getExpenses();
+        let html = `<button id="addExpenseBtn" class="btn"><i class="fas fa-plus"></i> ${t('add')}</button><div class="card"><div class="scroll-x">能able><thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead><tbody>${expenses.map(e => `<tr><td>${e.desc}</td><td>${e.amount} DH</td><td>${e.date}</td><td>${e.category}</td><td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button> </tr>`).join('')}</tbody></table></div></div>`;
+        document.getElementById('expensesPanel').innerHTML = html;
+        document.getElementById('addExpenseBtn')?.addEventListener('click', () => openModal("Ajouter dépense", [{ id: "desc", label: "Description" }, { id: "amount", label: "Montant" }, { id: "date", label: "Date YYYY-MM-DD" }, { id: "category", label: "Catégorie" }], async (data) => { await setDoc(doc(getSubCol('depenses')), { desc: data.desc, amount: Number(data.amount), date: data.date, category: data.category }); showToast("Ajoutée"); renderExpenses(); }));
+        document.querySelectorAll('.deleteExpenseBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('depenses'), btn.dataset.id)); showToast("Supprimée"); renderExpenses(); } }));
+    }
+
+    async function renderSchedule() {
+        let scheduleSnap = await getDocs(getSubCol('schedule'));
+        let entries = scheduleSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let levels = ['Primaire', 'Collège', 'Lycée', 'Supérieur'];
+        let html = `<button id="addScheduleBtn" class="btn"><i class="fas fa-plus"></i> Ajouter cours</button>`;
+        for (let lvl of levels) {
+            html += `<div class="card"><h3>${lvl}</h3><div class="scroll-x">能able><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Prof</th><th></th></tr></thead><tbody>${entries.filter(e => e.level === lvl).map(e => `<tr><td>${e.day}</td><td>${e.timeSlot}</td><td>${e.subject}</td><td>${e.profName || ''}</td><td><button class="delSchedBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        }
+        document.getElementById('schedulePanel').innerHTML = html;
+        document.getElementById('addScheduleBtn')?.addEventListener('click', () => openModal("Ajouter cours", [{ id: "level", label: "Niveau" }, { id: "day", label: "Jour" }, { id: "timeSlot", label: "Horaire" }, { id: "subject", label: "Matière" }, { id: "profName", label: "Professeur" }], async (data) => { await setDoc(doc(getSubCol('schedule')), { level: data.level, day: data.day, timeSlot: data.timeSlot, subject: data.subject, profName: data.profName }); showToast("Cours ajouté"); renderSchedule(); }));
+        document.querySelectorAll('.delSchedBtn').forEach(btn => btn.addEventListener('click', async () => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('schedule'), btn.dataset.id)); showToast("Supprimé"); renderSchedule(); } }));
+    }
+
+    async function renderPlanning() {
+        let reservations = await getReservations();
+        let students = await getStudents(), profs = await getProfs();
+        let studentMap = Object.fromEntries(students.map(s => [s.id, s.fullName]));
+        let profMap = Object.fromEntries(profs.map(p => [p.id, p.name]));
+        let html = `<div class="flex-between"><h3>Réservations</h3><button id="addReservationBtn" class="btn"><i class="fas fa-plus"></i> Nouvelle réservation</button></div>
+        <div class="card"><div class="scroll-x">能able><thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${
+            reservations.map(r => `<tr><td>${r.date}</td><td>${r.timeSlot}</td><td>${studentMap[r.studentId] || ''}</td><td>${profMap[r.profId] || ''}</td><td>${r.level || ''}</td><td>${r.status}</td><td><button class="validateResBtn" data-id="${r.id}" ${r.status === 'validé' ? 'disabled' : ''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button> </tr>`).join('')
+        }</tbody></table></div></div>`;
+        document.getElementById('planningPanel').innerHTML = html;
+        document.getElementById('addReservationBtn')?.addEventListener('click', async () => {
+            let studentsList = await getStudents(); let profsList = await getProfs();
+            let studentId = prompt("ID élève : " + studentsList.map(s => s.id + ":" + s.fullName).join(", "));
+            let profId = prompt("ID professeur : " + profsList.map(p => p.id + ":" + p.name).join(", "));
+            let date = prompt("Date (YYYY-MM-DD)"); let timeSlot = prompt("Créneau (ex: 14h-16h)");
+            if (studentId && profId && date && timeSlot) {
+                let existing = await getReservations();
+                let conflict = existing.find(r => r.profId === profId && r.date === date && r.timeSlot === timeSlot && r.status !== 'annulé');
+                if (conflict) { showToast("Conflit : ce professeur est déjà réservé", "error"); return; }
+                await setDoc(doc(collection(db, `centres/${currentUser.uid}/reservations`)), { studentId, profId, date, timeSlot, level: studentsList.find(s => s.id === studentId)?.level, status: 'en attente' });
+                showToast("Réservation créée"); renderPlanning();
+            }
+        });
+        document.querySelectorAll('.validateResBtn').forEach(btn => btn.addEventListener('click', async () => { await updateDoc(doc(db, `centres/${currentUser.uid}/reservations`, btn.dataset.id), { status: 'validé' }); renderPlanning(); }));
+        document.querySelectorAll('.cancelResBtn').forEach(btn => btn.addEventListener('click', async () => { await updateDoc(doc(db, `centres/${currentUser.uid}/reservations`, btn.dataset.id), { status: 'annulé' }); renderPlanning(); }));
+    }
+
+    async function renderInvoices() {
+        let invoices = await getInvoices(), students = await getStudents();
+        let html = `<div class="flex-between"><h3>Factures</h3><button id="createInvoiceBtn" class="btn"><i class="fas fa-plus"></i> Créer une facture</button><button id="payOnlineBtn" class="btn btn-sm btn-outline">Payer en ligne (test)</button></div>
+        <div class="card"><div class="scroll-x">能able><thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead><tbody>${
+            invoices.map(i => `<tr><td>${i.number}</td><td>${students.find(s => s.id === i.studentId)?.fullName}</td><td>${i.amountHT} DH</td><td>${i.tva}%</td><td>${i.totalTTC} DH</td><td>${i.dueDate}</td><td>${i.status}</td><td><button class="pdfInvoiceBtn" data-id="${i.id}">PDF</button> </tr>`).join('')
+        }</tbody></table></div></div>`;
+        document.getElementById('invoicesPanel').innerHTML = html;
+        document.getElementById('createInvoiceBtn')?.addEventListener('click', async () => {
+            let studentId = prompt("ID élève"); let amountHT = prompt("Montant HT"); let tva = prompt("TVA (%)", "20"); let dueDate = prompt("Date d'échéance (YYYY-MM-DD)");
+            let number = "FACT-" + Date.now(); let totalTTC = amountHT * (1 + tva / 100);
+            await setDoc(doc(collection(db, `centres/${currentUser.uid}/invoices`)), { number, studentId, amountHT: parseFloat(amountHT), tva: parseFloat(tva), totalTTC, dueDate, status: 'envoyée', createdAt: new Date() });
+            showToast("Facture créée"); renderInvoices();
+        });
+        document.getElementById('payOnlineBtn')?.addEventListener('click', () => { showToast("Mode test - Stripe à configurer"); });
+        document.querySelectorAll('.pdfInvoiceBtn').forEach(btn => btn.addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf; const invoice = (await getInvoices()).find(i => i.id === btn.dataset.id); const student = (await getStudents()).find(s => s.id === invoice.studentId);
+            const doc = new jsPDF(); doc.text(`Facture ${invoice.number}`, 20, 20); doc.text(`Élève : ${student.fullName}`, 20, 40); doc.text(`Montant HT : ${invoice.amountHT} DH`, 20, 50); doc.text(`TVA : ${invoice.tva}%`, 20, 60); doc.text(`Total TTC : ${invoice.totalTTC} DH`, 20, 70); doc.text(`Échéance : ${invoice.dueDate}`, 20, 80); doc.save(`facture_${invoice.number}.pdf`);
+        }));
+    }
+
+    // Navigation
+    async function refreshCurrentPanel() {
+        const active = document.querySelector('.nav-item.active')?.dataset.panel || 'dashboard';
+        if (active === 'dashboard') await renderDashboard();
+        else if (active === 'students') await renderStudents();
+        else if (active === 'parents') await renderParents();
+        else if (active === 'payments') await renderPayments();
+        else if (active === 'profs') await renderProfs();
+        else if (active === 'expenses') await renderExpenses();
+        else if (active === 'schedule') await renderSchedule();
+        else if (active === 'planning') await renderPlanning();
+        else if (active === 'invoices') await renderInvoices();
+    }
+    function showPanel(panelId) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+        document.getElementById(panelId + 'Panel').classList.add('active-panel');
+        document.querySelectorAll('.nav-item').forEach(btn => { if (btn.dataset.panel === panelId) btn.classList.add('active'); else btn.classList.remove('active'); });
+        refreshCurrentPanel();
+    }
+
+    // Construction de l'interface principale
+    function buildAppUI() {
+        document.getElementById('appContainer').innerHTML = `
+            <div class="flex-between" style="margin-bottom: 1rem;">
+                <h2><i class="fas fa-graduation-cap"></i> <span data-i18n="appName">Centre Astuces</span></h2>
+                <div>
+                    <select id="langSelect" class="lang-select"><option value="fr">🇫🇷</option><option value="en">🇬🇧</option><option value="ar">🇸🇦</option></select>
+                    <button id="logoutBtn" class="btn btn-sm btn-outline"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+            <div class="flex-between" style="margin-bottom: 1rem;">
+                <div><strong>Année active :</strong> <span id="activeYearLabel">-</span></div>
+                <div><button id="manageYearsBtn" class="btn btn-sm"><i class="fas fa-calendar-alt"></i> Gérer années</button>
+                <button id="backupExportBtn" class="btn btn-sm btn-outline"><i class="fas fa-download"></i> JSON</button>
+                <button id="backupImportBtn" class="btn btn-sm btn-outline"><i class="fas fa-upload"></i> Importer</button></div>
+            </div>
+            <div class="bottom-nav">
+                <button class="nav-item" data-panel="dashboard"><i class="fas fa-chart-line"></i><span>${t('dashboard')}</span></button>
+                <button class="nav-item" data-panel="students"><i class="fas fa-user-graduate"></i><span>${t('students')}</span></button>
+                <button class="nav-item" data-panel="parents"><i class="fas fa-users"></i><span>${t('parents')}</span></button>
+                <button class="nav-item" data-panel="payments"><i class="fas fa-coins"></i><span>${t('payments')}</span></button>
+                <button class="nav-item" data-panel="profs"><i class="fas fa-chalkboard"></i><span>${t('teachers')}</span></button>
+                <button class="nav-item" data-panel="expenses"><i class="fas fa-receipt"></i><span>${t('expenses')}</span></button>
+                <button class="nav-item" data-panel="schedule"><i class="fas fa-calendar-week"></i><span>${t('schedule')}</span></button>
+                <button class="nav-item" data-panel="planning"><i class="fas fa-calendar-check"></i><span>${t('planning')}</span></button>
+                <button class="nav-item" data-panel="invoices"><i class="fas fa-file-invoice"></i><span>${t('invoices')}</span></button>
+            </div>
+            <div id="dashboardPanel" class="panel"></div><div id="studentsPanel" class="panel"></div><div id="parentsPanel" class="panel"></div>
+            <div id="paymentsPanel" class="panel"></div><div id="profsPanel" class="panel"></div><div id="expensesPanel" class="panel"></div>
+            <div id="schedulePanel" class="panel"></div><div id="planningPanel" class="panel"></div><div id="invoicesPanel" class="panel"></div>
+        `;
+        document.getElementById('langSelect').value = currentLang;
+        document.getElementById('langSelect').addEventListener('change', (e) => { currentLang = e.target.value; localStorage.setItem('lang', currentLang); refreshCurrentPanel(); });
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+        document.getElementById('manageYearsBtn').addEventListener('click', openYearModal);
+        document.getElementById('backupExportBtn').addEventListener('click', async () => {
+            if (!activeYearId) return;
+            const data = { students: await getStudents(), parents: await getParents(), payments: await getPayments(), profs: await getProfs(), expenses: await getExpenses(), schedule: (await getDocs(getSubCol('schedule'))).docs.map(d => d.data()) };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup_${activeYearId}.json`; a.click(); showToast("Exporté");
+        });
+        const importInput = document.createElement('input'); importInput.type = 'file'; importInput.accept = 'application/json';
+        document.getElementById('backupImportBtn').addEventListener('click', () => importInput.click());
+        importInput.onchange = async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = async (ev) => {
+                const data = JSON.parse(ev.target.result); const batch = writeBatch(db);
+                for (let s of (data.students || [])) { const ref = doc(getSubCol('eleves')); batch.set(ref, s); }
+                for (let p of (data.parents || [])) batch.set(doc(getSubCol('parents')), p);
+                for (let pay of (data.payments || [])) batch.set(doc(getSubCol('paiements')), pay);
+                for (let pr of (data.profs || [])) batch.set(doc(getSubCol('profs')), pr);
+                for (let exp of (data.expenses || [])) batch.set(doc(getSubCol('depenses')), exp);
+                for (let sch of (data.schedule || [])) batch.set(doc(getSubCol('schedule')), sch);
+                await batch.commit(); showToast("Importé"); refreshCurrentPanel();
+            }; reader.readAsText(file);
+        };
+        document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPanel(btn.dataset.panel)));
+        loadYearsAndActive().then(() => showPanel('dashboard'));
+    }
+
+    // Authentification
+    function renderAuth() {
+        document.getElementById('authWrapper').innerHTML = `
+            <div class="auth-card">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-chalkboard-user"></i> Centre Astuces</h2>
+                <div id="authTabs" class="flex-between" style="margin-bottom: 1rem;">
+                    <button id="showLoginBtn" class="btn btn-outline" style="flex:1; margin-right:0.5rem;">Connexion</button>
+                    <button id="showSignupBtn" class="btn btn-outline" style="flex:1;">Inscription</button>
+                </div>
+                <div id="loginForm"><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPassword" placeholder="Mot de passe" style="margin-top:0.8rem;"><button id="doLoginBtn" class="btn" style="width:100%; margin-top:1.5rem;">Se connecter</button></div>
+                <div id="signupForm" style="display:none;"><input type="email" id="signupEmail" placeholder="Email"><input type="password" id="signupPassword" placeholder="Mot de passe"><button id="doSignupBtn" class="btn" style="width:100%; margin-top:1.5rem;">Créer mon centre</button></div>
+            </div>
+        `;
+        document.getElementById('showLoginBtn').onclick = () => { document.getElementById('loginForm').style.display = 'block'; document.getElementById('signupForm').style.display = 'none'; };
+        document.getElementById('showSignupBtn').onclick = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('signupForm').style.display = 'block'; };
+        document.getElementById('doLoginBtn').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value).catch(e => showToast(e.message, 'error'));
+        document.getElementById('doSignupBtn').onclick = () => createUserWithEmailAndPassword(auth, document.getElementById('signupEmail').value, document.getElementById('signupPassword').value).catch(e => showToast(e.message, 'error'));
+    }
+
+    // Démarrage
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('authWrapper').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            buildAppUI();
+        } else {
+            currentUser = null;
+            document.getElementById('authWrapper').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            renderAuth();
+        }
+    });
 </script>
 </body>
-</html>
+    </html>
