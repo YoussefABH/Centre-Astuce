@@ -3,30 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Centre Astuces - Gestion avancée</title>
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1f2a">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1995/1995572.png">
-    <!-- Fonts & Icons -->
+    <title>Centre Astuces - Gestion complète</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js, jsPDF, html2canvas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Stripe JS (test) -->
+    <!-- Stripe (test) -->
     <script src="https://js.stripe.com/v3/"></script>
-    <!-- Firebase -->
-    <script type="importmap">
-        {
-            "imports": {
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
-                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
-            }
-        }
-    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #0a0c10; color: #eef2ff; padding-bottom: 80px; }
@@ -34,72 +18,51 @@
         .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: linear-gradient(145deg, #0a0c10 0%, #0f1219 100%); }
         .auth-card { background: var(--card-bg); border-radius: 2rem; padding: 2rem; width: 100%; max-width: 420px; border: 1px solid var(--border); }
         .app-container { display: none; max-width: 1400px; margin: 0 auto; padding: 1rem 1rem 5rem; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 0.7rem 1rem 1rem; border-top: 1px solid var(--border); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 2rem; }
-        .nav-item i { font-size: 1.4rem; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 0.7rem 1rem 1rem; border-top: 1px solid var(--border); z-index: 1000; overflow-x: auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; border: none; color: var(--text-muted); font-size: 0.7rem; cursor: pointer; padding: 0.4rem 0.6rem; border-radius: 2rem; white-space: nowrap; }
+        .nav-item i { font-size: 1.2rem; }
         .nav-item.active { color: var(--primary); background: rgba(59,130,246,0.15); }
         .panel { display: none; animation: fade 0.2s ease; }
         .panel.active-panel { display: block; }
         @keyframes fade { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
         .card { background: var(--card-bg); border-radius: 1.5rem; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid var(--border); }
-        .btn { background: var(--primary); border: none; padding: 0.6rem 1.2rem; border-radius: 2rem; color: white; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .btn { background: var(--primary); border: none; padding: 0.5rem 1rem; border-radius: 2rem; color: white; font-weight: 500; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
         .btn-danger { background: var(--danger); }
-        .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
-        input, select, textarea { background: #0f1119; border: 1px solid var(--border); border-radius: 1rem; padding: 0.7rem 1rem; color: white; width: 100%; margin-top: 0.2rem; }
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 1rem; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        input, select, textarea { background: #0f1119; border: 1px solid var(--border); border-radius: 1rem; padding: 0.6rem 1rem; color: white; width: 100%; margin-top: 0.2rem; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 1rem; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 0.75rem 1.5rem; border-radius: 3rem; z-index: 2000; font-size: 0.9rem; backdrop-filter: blur(8px); }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 0.6rem 1.2rem; border-radius: 3rem; z-index: 2000; font-size: 0.85rem; backdrop-filter: blur(8px); }
         .loading-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .badge { background: #2d3748; padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.7rem 0.2rem; border-bottom: 1px solid var(--border); text-align: left; }
+        th, td { padding: 0.6rem 0.2rem; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.85rem; }
         .scroll-x { overflow-x: auto; }
-        .widget { transition: all 0.2s; }
         .widget.hidden { display: none; }
-        .lang-select { background: transparent; border: 1px solid var(--border); color: white; padding: 0.3rem 0.6rem; border-radius: 2rem; cursor: pointer; }
-        @media (max-width: 640px) { .hide-mobile { display: none; } }
+        .lang-select { background: #1a1f2a; border: 1px solid var(--border); color: white; padding: 0.3rem 0.5rem; border-radius: 2rem; cursor: pointer; }
+        @media (max-width: 640px) { .hide-mobile { display: none; } .nav-item span { display: none; } .nav-item i { font-size: 1.4rem; } .nav-item { padding: 0.2rem; } }
     </style>
 </head>
 <body>
-<div id="authWrapper" class="auth-container">...</div> <!-- identique à avant -->
-<div id="appContainer" class="app-container">
-    <div class="flex-between" style="margin-bottom: 1rem;">
-        <h2><i class="fas fa-graduation-cap"></i> <span data-i18n="app_name">Centre Astuces</span></h2>
-        <div>
-            <select id="langSelect" class="lang-select">
-                <option value="fr">🇫🇷 Français</option>
-                <option value="en">🇬🇧 English</option>
-                <option value="ar">🇸🇦 العربية</option>
-            </select>
-            <button id="logoutBtn" class="btn btn-sm btn-outline"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-    </div>
-    <!-- bottom-nav identique -->
-    <div class="bottom-nav">
-        <button class="nav-item" data-panel="dashboard"><i class="fas fa-chart-line"></i><span data-i18n="nav_stats">Stats</span></button>
-        <button class="nav-item" data-panel="students"><i class="fas fa-user-graduate"></i><span data-i18n="nav_students">Élèves</span></button>
-        <button class="nav-item" data-panel="parents"><i class="fas fa-users"></i><span data-i18n="nav_parents">Parents</span></button>
-        <button class="nav-item" data-panel="payments"><i class="fas fa-coins"></i><span data-i18n="nav_payments">Paiements</span></button>
-        <button class="nav-item" data-panel="profs"><i class="fas fa-chalkboard"></i><span data-i18n="nav_profs">Professeurs</span></button>
-        <button class="nav-item" data-panel="expenses"><i class="fas fa-receipt"></i><span data-i18n="nav_expenses">Dépenses</span></button>
-        <button class="nav-item" data-panel="schedule"><i class="fas fa-calendar-week"></i><span data-i18n="nav_schedule">Emploi</span></button>
-        <button class="nav-item" data-panel="planning"><i class="fas fa-calendar-check"></i><span data-i18n="nav_planning">Réservations</span></button>
-        <button class="nav-item" data-panel="invoices"><i class="fas fa-file-invoice"></i><span data-i18n="nav_invoices">Factures</span></button>
-    </div>
-    <!-- Panels (ajout de planning et invoices) -->
-    <div id="dashboardPanel" class="panel"></div>
-    <div id="studentsPanel" class="panel"></div>
-    <div id="parentsPanel" class="panel"></div>
-    <div id="paymentsPanel" class="panel"></div>
-    <div id="profsPanel" class="panel"></div>
-    <div id="expensesPanel" class="panel"></div>
-    <div id="schedulePanel" class="panel"></div>
-    <div id="planningPanel" class="panel"></div>
-    <div id="invoicesPanel" class="panel"></div>
-</div>
+<div id="authWrapper" class="auth-container"></div>
+<div id="appContainer" class="app-container"></div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+        }
+    }
+</script>
 <script type="module">
-    // Firebase config (à remplacer)
+    import { initializeApp } from "firebase/app";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+    import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, setDoc, getDocs, getDoc, deleteDoc, updateDoc, writeBatch, query, where } from "firebase/firestore";
+
+    // ========== 🔥 CONFIGURATION FIREBASE (À REMPLACER) ==========
     const firebaseConfig = {
   apiKey: "AIzaSyBuCpcHui188EL9O2g2no1f36NSBb-Hfig",
   authDomain: "centre-astuces.firebaseapp.com",
@@ -108,129 +71,83 @@
   messagingSenderId: "477248068455",
   appId: "1:477248068455:web:14861a2ea11a059878edc2"
 };
-    
-    // Imports Firebase
-    import { initializeApp } from "firebase/app";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-    import { getFirestore, collection, doc, setDoc, getDocs, getDoc, deleteDoc, updateDoc, query, where, writeBatch, enableIndexedDbPersistence } from "firebase/firestore";
-    
+    // ============================================================
+
+    // Initialisation avec cache local (pas de warning)
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
-    enableIndexedDbPersistence(db).catch(console.warn);
-    
+    const db = initializeFirestore(app, { localCache: persistentLocalCache() });
+
     // État global
-    let currentUser = null, activeYearId = null, yearsList = [], currentChart = null;
+    let currentUser = null;
+    let activeYearId = null;
+    let yearsList = [];
+    let currentChart = null;
     let currentLang = localStorage.getItem('lang') || 'fr';
+
+    // Traductions simplifiées
     const translations = {
-        fr: { app_name: "Centre Astuces", nav_stats: "Stats", nav_students: "Élèves", nav_parents: "Parents", nav_payments: "Paiements", nav_profs: "Professeurs", nav_expenses: "Dépenses", nav_schedule: "Emploi", nav_planning: "Réservations", nav_invoices: "Factures" },
-        en: { app_name: "Tutoring Center", nav_stats: "Stats", nav_students: "Students", nav_parents: "Parents", nav_payments: "Payments", nav_profs: "Teachers", nav_expenses: "Expenses", nav_schedule: "Schedule", nav_planning: "Bookings", nav_invoices: "Invoices" },
-        ar: { app_name: "مركز أستيوز", nav_stats: "إحصائيات", nav_students: "طلاب", nav_parents: "أولياء", nav_payments: "مدفوعات", nav_profs: "أساتذة", nav_expenses: "مصروفات", nav_schedule: "جدول", nav_planning: "حجوزات", nav_invoices: "فواتير" }
+        fr: { appName: "Centre Astuces", dashboard: "Tableau de bord", students: "Élèves", parents: "Parents", payments: "Paiements", teachers: "Professeurs", expenses: "Dépenses", schedule: "Emploi du temps", planning: "Réservations", invoices: "Factures" },
+        en: { appName: "Tutoring Center", dashboard: "Dashboard", students: "Students", parents: "Parents", payments: "Payments", teachers: "Teachers", expenses: "Expenses", schedule: "Schedule", planning: "Bookings", invoices: "Invoices" },
+        ar: { appName: "مركز أستيوز", dashboard: "لوحة القيادة", students: "الطلاب", parents: "أولياء الأمور", payments: "المدفوعات", teachers: "الأساتذة", expenses: "المصروفات", schedule: "الجدول", planning: "الحجوزات", invoices: "الفواتير" }
     };
-    function updateUI() { document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.dataset.i18n; if(translations[currentLang][key]) el.innerText = translations[currentLang][key]; }); }
-    document.getElementById('langSelect').value = currentLang;
-    document.getElementById('langSelect').addEventListener('change', (e) => { currentLang = e.target.value; localStorage.setItem('lang', currentLang); updateUI(); refreshCurrentPanel(); });
-    
-    // Helpers (showToast, loading, getYearRef, getSubCol) identiques
-    function showToast(msg, type="info") { let t = document.querySelector('.toast'); if(t) t.remove(); let div = document.createElement('div'); div.className = 'toast'; div.innerText = msg; div.style.background = type==='error'?'#b91c1c':'#1f2937'; document.body.appendChild(div); setTimeout(()=>div.remove(),3000); }
-    function loading(show=true) { let l = document.getElementById('loader'); if(!l && show){ let d=document.createElement('div'); d.id='loader'; d.className='loading-overlay'; d.innerHTML='<div class="card">Chargement...</div>'; document.body.appendChild(d); } else if(l && !show) l.remove(); }
-    function getYearRef() { if(!currentUser || !activeYearId) return null; return doc(db, `centres/${currentUser.uid}/years/${activeYearId}`); }
+    function t(key) { return translations[currentLang][key] || key; }
+    function updateUI() { document.querySelectorAll('[data-i18n]').forEach(el => el.innerText = t(el.dataset.i18n)); }
+    document.addEventListener('langChanged', updateUI);
+
+    // Helpers
+    function showToast(msg, type = "info") { let t = document.querySelector('.toast'); if (t) t.remove(); let div = document.createElement('div'); div.className = 'toast'; div.innerText = msg; div.style.background = type === 'error' ? '#b91c1c' : '#1f2937'; document.body.appendChild(div); setTimeout(() => div.remove(), 3000); }
+    function loading(show = true) { let l = document.getElementById('loader'); if (!l && show) { let d = document.createElement('div'); d.id = 'loader'; d.className = 'loading-overlay'; d.innerHTML = '<div class="card">Chargement...</div>'; document.body.appendChild(d); } else if (l && !show) l.remove(); }
+    function getYearRef() { if (!currentUser || !activeYearId) return null; return doc(db, `centres/${currentUser.uid}/years/${activeYearId}`); }
     function getSubCol(name) { return collection(getYearRef(), name); }
-    
-    // Récupération données (élèves, parents, etc.) identique à avant, je ne répète pas pour gagner de la place, mais je les suppose définies.
-    // Pour la lisibilité, je vais réécrire les fonctions essentielles rapidement :
-    async function getStudents() { if(!activeYearId) return []; const snap = await getDocs(getSubCol('eleves')); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getParents() { const snap = await getDocs(getSubCol('parents')); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getPayments() { const snap = await getDocs(getSubCol('paiements')); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getProfs() { const snap = await getDocs(getSubCol('profs')); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getExpenses() { const snap = await getDocs(getSubCol('depenses')); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getSessions(profId) { const snap = await getDocs(collection(db, `centres/${currentUser.uid}/years/${activeYearId}/profs/${profId}/sessions`)); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getReservations() { const snap = await getDocs(collection(db, `centres/${currentUser.uid}/reservations`)); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    async function getInvoices() { const snap = await getDocs(collection(db, `centres/${currentUser.uid}/invoices`)); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
-    
-    // ========== PLANNING AVANCÉ ==========
-    async function renderPlanning() {
-        let reservations = await getReservations();
-        let students = await getStudents();
-        let profs = await getProfs();
-        let studentMap = Object.fromEntries(students.map(s=>[s.id, s.fullName]));
-        let profMap = Object.fromEntries(profs.map(p=>[p.id, p.name]));
-        let html = `<div class="flex-between"><h3>Réservations</h3><button id="addReservationBtn" class="btn btn-sm">+ Nouvelle réservation</button></div>
-        <div class="card"><div class="flex-between"><label>Vue : <select id="viewSelect"><option value="all">Toutes</option><option value="prof">Par professeur</option><option value="student">Par élève</option></select></label></div>
-        <div class="scroll-x">` +
-        `<table><thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${
-            reservations.map(r => `<tr><td>${r.date}</td><td>${r.timeSlot}</td><td>${studentMap[r.studentId]||''}</td><td>${profMap[r.profId]||''}</td><td>${r.level}</td><td>${r.status}</td><td><button class="validateResBtn" data-id="${r.id}" ${r.status==='validé'?'disabled':''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button></td></tr>`).join('')
-        }</tbody></table></div></div>`;
-        document.getElementById('planningPanel').innerHTML = html;
-        document.getElementById('addReservationBtn')?.addEventListener('click', async () => {
-            let studentId = prompt("ID élève : " + (await getStudents()).map(s=>s.id+":"+s.fullName).join(", "));
-            let profId = prompt("ID professeur : " + (await getProfs()).map(p=>p.id+":"+p.name).join(", "));
-            let date = prompt("Date (YYYY-MM-DD)");
-            let timeSlot = prompt("Créneau (ex: 14h-16h)");
-            if(studentId && profId && date && timeSlot) {
-                // Vérifier conflit
-                let existing = await getReservations();
-                let conflict = existing.find(r => r.profId === profId && r.date === date && r.timeSlot === timeSlot && r.status !== 'annulé');
-                if(conflict) { showToast("Conflit : ce professeur est déjà réservé sur ce créneau", "error"); return; }
-                await setDoc(doc(collection(db, `centres/${currentUser.uid}/reservations`)), { studentId, profId, date, timeSlot, level: (await getStudents()).find(s=>s.id===studentId)?.level, status: 'en attente' });
-                showToast("Réservation créée"); renderPlanning();
-            }
-        });
-        document.querySelectorAll('.validateResBtn').forEach(btn => btn.addEventListener('click', async (e) => { await updateDoc(doc(db, `centres/${currentUser.uid}/reservations`, btn.dataset.id), { status: 'validé' }); renderPlanning(); }));
-        document.querySelectorAll('.cancelResBtn').forEach(btn => btn.addEventListener('click', async (e) => { await updateDoc(doc(db, `centres/${currentUser.uid}/reservations`, btn.dataset.id), { status: 'annulé' }); renderPlanning(); }));
-    }
-    
-    // ========== FACTURATION AVANCÉE ==========
-    async function renderInvoices() {
-        let invoices = await getInvoices();
-        let students = await getStudents();
-        let html = `<div class="flex-between"><h3>Factures</h3><button id="createInvoiceBtn" class="btn btn-sm">Créer une facture</button><button id="payOnlineBtn" class="btn btn-sm btn-outline">Payer en ligne</button></div>
-        <div class="card"><div class="scroll-x"><table><thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead><tbody>${
-            invoices.map(i => `<tr><td>${i.number}</td><td>${students.find(s=>s.id===i.studentId)?.fullName}</td><td>${i.amountHT} DH</td><td>${i.tva}%</td><td>${i.totalTTC} DH</td><td>${i.dueDate}</td><td>${i.status}</td><td><button class="pdfInvoiceBtn" data-id="${i.id}">PDF</button></td></tr>`).join('')
-        }</tbody></table></div></div>`;
-        document.getElementById('invoicesPanel').innerHTML = html;
-        document.getElementById('createInvoiceBtn')?.addEventListener('click', async () => {
-            let studentId = prompt("ID élève");
-            let amountHT = prompt("Montant HT");
-            let tva = prompt("TVA (%)", "20");
-            let dueDate = prompt("Date d'échéance (YYYY-MM-DD)");
-            let number = "FACT-" + Date.now();
-            let totalTTC = amountHT * (1 + tva/100);
-            await setDoc(doc(collection(db, `centres/${currentUser.uid}/invoices`)), { number, studentId, amountHT: parseFloat(amountHT), tva: parseFloat(tva), totalTTC, dueDate, status: 'envoyée', createdAt: new Date() });
-            showToast("Facture créée"); renderInvoices();
-        });
-        // Paiement en ligne Stripe (test)
-        document.getElementById('payOnlineBtn')?.addEventListener('click', () => {
-            const stripe = Stripe('pk_test_votre_clé_publique'); // à remplacer
-            stripe.redirectToCheckout({ lineItems: [{ price: 'prix_test', quantity: 1 }], mode: 'payment', successUrl: window.location.href, cancelUrl: window.location.href });
-        });
-        document.querySelectorAll('.pdfInvoiceBtn').forEach(btn => btn.addEventListener('click', async (e) => {
-            const { jsPDF } = window.jspdf;
-            const invoice = (await getInvoices()).find(i => i.id === btn.dataset.id);
-            const student = (await getStudents()).find(s => s.id === invoice.studentId);
-            const doc = new jsPDF();
-            doc.text(`Facture ${invoice.number}`, 20, 20);
-            doc.text(`Élève : ${student.fullName}`, 20, 40);
-            doc.text(`Montant HT : ${invoice.amountHT} DH`, 20, 50);
-            doc.text(`TVA : ${invoice.tva}%`, 20, 60);
-            doc.text(`Total TTC : ${invoice.totalTTC} DH`, 20, 70);
-            doc.text(`Échéance : ${invoice.dueDate}`, 20, 80);
-            doc.save(`facture_${invoice.number}.pdf`);
-        }));
-    }
-    
-    // ========== TABLEAU DE BORD PERSONNALISABLE ==========
-    async function renderDashboard() {
-        if(!activeYearId) { document.getElementById('dashboardPanel').innerHTML='<div class="card">Sélectionnez une année scolaire</div>'; return; }
+
+    // Récupération des données (avec vérification année active)
+    async function getStudents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('eleves')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getParents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('parents')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getPayments() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('paiements')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getProfs() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('profs')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getExpenses() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('depenses')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getSessions(profId) { if (!activeYearId) return []; const snap = await getDocs(collection(db, `centres/${currentUser.uid}/years/${activeYearId}/profs/${profId}/sessions`)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getReservations() { if (!currentUser) return []; const snap = await getDocs(collection(db, `centres/${currentUser.uid}/reservations`)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    async function getInvoices() { if (!currentUser) return []; const snap = await getDocs(collection(db, `centres/${currentUser.uid}/invoices`)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+
+    // Gestion des années scolaires
+    async function loadYearsAndActive() {
+        if (!currentUser) return;
         loading(true);
-        const payments=await getPayments(), expenses=await getExpenses(), students=await getStudents();
-        const totalRev = payments.reduce((a,b)=>a+Number(b.amount),0);
-        const totalExp = expenses.reduce((a,b)=>a+Number(b.amount),0);
-        const profit = totalRev-totalExp;
-        const levels = ['Primaire','Collège','Lycée','Supérieur'];
-        const levelStats = levels.map(l=>payments.filter(p=>p.level===l).reduce((a,b)=>a+Number(b.amount),0));
+        const yearsCol = collection(db, `centres/${currentUser.uid}/years`);
+        const snap = await getDocs(yearsCol);
+        yearsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const active = yearsList.find(y => y.active === true);
+        if (active) activeYearId = active.id;
+        else if (yearsList.length) { activeYearId = yearsList[0].id; await setDoc(doc(db, `centres/${currentUser.uid}/years/${activeYearId}`), { active: true, name: yearsList[0].name }, { merge: true }); }
+        else activeYearId = null;
+        document.getElementById('activeYearLabel') && (document.getElementById('activeYearLabel').innerText = activeYearId ? (yearsList.find(y => y.id === activeYearId)?.name || 'Année') : 'Aucune');
+        loading(false);
+        refreshCurrentPanel();
+    }
+    async function openYearModal() {
+        let name = prompt("Nom année scolaire (ex: 2024-2025)");
+        if (!name) return;
+        loading(true);
+        const yearRef = doc(collection(db, `centres/${currentUser.uid}/years`));
+        await setDoc(yearRef, { name, active: yearsList.length === 0, createdAt: new Date() });
+        await loadYearsAndActive();
+        showToast("Année créée");
+    }
+
+    // ========== RENDERING DES PANNEAUX (versions simplifiées mais complètes) ==========
+    async function renderDashboard() {
+        if (!activeYearId) { document.getElementById('dashboardPanel').innerHTML = '<div class="card">Sélectionnez ou créez une année scolaire</div>'; return; }
+        loading(true);
+        const payments = await getPayments(), expenses = await getExpenses(), students = await getStudents();
+        const totalRev = payments.reduce((a, b) => a + Number(b.amount), 0);
+        const totalExp = expenses.reduce((a, b) => a + Number(b.amount), 0);
+        const profit = totalRev - totalExp;
+        const levels = ['Primaire', 'Collège', 'Lycée', 'Supérieur'];
+        const levelStats = levels.map(l => payments.filter(p => p.level === l).reduce((a, b) => a + Number(b.amount), 0));
         let widgetConfig = JSON.parse(localStorage.getItem('widgetConfig') || '{"revenue":true,"expenses":true,"profit":true,"studentsCount":true,"chart":true}');
-        const html = `<div class="flex-between"><h3>Tableau de bord</h3><button id="configWidgetsBtn" class="btn btn-sm">Configurer widgets</button><button id="exportCSVBtn" class="btn btn-sm btn-outline">Export CSV</button></div>
+        let html = `<div class="flex-between"><h3 data-i18n="dashboard">Tableau de bord</h3><button id="configWidgetsBtn" class="btn btn-sm">Configurer widgets</button><button id="exportCSVBtn" class="btn btn-sm btn-outline">Export CSV</button></div>
         <div class="grid-2" id="widgetsContainer">
             ${widgetConfig.revenue ? `<div class="card widget" data-widget="revenue"><h3>💰 Revenus</h3><p>${totalRev} DH</p></div>` : ''}
             ${widgetConfig.expenses ? `<div class="card widget" data-widget="expenses"><h3>📉 Dépenses</h3><p>${totalExp} DH</p></div>` : ''}
@@ -240,35 +157,292 @@
         </div>`;
         document.getElementById('dashboardPanel').innerHTML = html;
         const canvas = document.getElementById('levelChart');
-        if(canvas && currentChart) currentChart.destroy();
-        if(canvas) currentChart = new Chart(canvas, { type:'bar', data:{ labels:levels, datasets:[{label:'Montant (DH)', data:levelStats, backgroundColor:'#3b82f6'}] } });
+        if (canvas && currentChart) currentChart.destroy();
+        if (canvas) currentChart = new Chart(canvas, { type: 'bar', data: { labels: levels, datasets: [{ label: 'Montant (DH)', data: levelStats, backgroundColor: '#3b82f6' }] } });
         document.getElementById('configWidgetsBtn')?.addEventListener('click', () => {
             let newConfig = { revenue: confirm("Afficher revenus ?"), expenses: confirm("Afficher dépenses ?"), profit: confirm("Afficher bénéfice ?"), studentsCount: confirm("Afficher nombre d'élèves ?"), chart: confirm("Afficher graphique ?") };
             localStorage.setItem('widgetConfig', JSON.stringify(newConfig));
             renderDashboard();
         });
         document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
-            let csv = "Type,Valeur\nRevenus,"+totalRev+"\nDépenses,"+totalExp+"\nBénéfice,"+profit+"\nÉlèves,"+students.length;
-            const blob = new Blob([csv], {type: 'text/csv'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "dashboard.csv"; a.click();
+            let csv = "Type,Valeur\nRevenus," + totalRev + "\nDépenses," + totalExp + "\nBénéfice," + profit + "\nÉlèves," + students.length;
+            const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "dashboard.csv"; a.click();
         });
         loading(false);
     }
-    
-    // Les autres panels (students, parents, payments, profs, expenses, schedule) restent identiques à la version précédente.
-    // Pour éviter la redondance, je ne les réécris pas ici, mais ils sont présents dans le code final complet (fichier joint).
-    
-    // Initialisation de l'app et navigation (identique)
-    onAuthStateChanged(auth, async (user) => { if(user){ currentUser=user; document.getElementById('authWrapper').style.display='none'; document.getElementById('appContainer').style.display='block'; await loadYearsAndActive(); showPanel('dashboard'); } else { currentUser=null; document.getElementById('authWrapper').style.display='flex'; document.getElementById('appContainer').style.display='none'; } });
-    async function loadYearsAndActive() { /* identique */ }
-    function showPanel(panelId) { /* identique, avec ajout des nouveaux panels */ }
-    async function refreshCurrentPanel() { const active = document.querySelector('.nav-item.active')?.dataset.panel || 'dashboard'; if(active==='dashboard') await renderDashboard(); else if(active==='planning') await renderPlanning(); else if(active==='invoices') await renderInvoices(); /* autres */ }
-    
-    // Boutons et listeners
-    document.getElementById('logoutBtn').onclick = () => signOut(auth);
-    // ... etc.
-    
-    // Note : Le code complet sera fourni dans un fichier unique.
-    console.log("Application avancée prête");
+
+    async function renderStudents() {
+        let students = await getStudents(), parents = await getParents();
+        const parentMap = Object.fromEntries(parents.map(p => [p.id, p.name]));
+        let html = `<div class="flex-between"><h3>Élèves</h3><button id="addStudentBtn" class="btn btn-sm">+ Ajouter</button></div>
+        <input type="text" id="searchStudent" placeholder="Rechercher..." class="card">
+        <div class="card"><div class="scroll-x"><table><th>Nom</th><th>Niveau</th><th>Téléphone</th><th>Parent</th><th>Actions</th></tr>${students.map(s => `<tr><td>${s.fullName}</td><td>${s.level}</td><td>${s.phone || ''}</td><td>${parentMap[s.parentId] || '—'}</td><td><button data-id="${s.id}" class="editStudentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${s.id}" class="deleteStudentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</table></div></div>`;
+        document.getElementById('studentsPanel').innerHTML = html;
+        document.getElementById('addStudentBtn')?.addEventListener('click', () => showStudentModal());
+        document.querySelectorAll('.editStudentBtn').forEach(btn => btn.addEventListener('click', () => showStudentModal(btn.dataset.id)));
+        document.querySelectorAll('.deleteStudentBtn').forEach(btn => btn.addEventListener('click', async e => { if (confirm("Supprimer ?")) { await deleteDoc(doc(getSubCol('eleves'), btn.dataset.id)); showToast("Supprimé"); renderStudents(); } }));
+    }
+    async function showStudentModal(id = null) {
+        let parents = await getParents();
+        let student = id ? (await getDoc(doc(getSubCol('eleves'), id))).data() : null;
+        let name = prompt("Nom complet", student?.fullName || ""); if (!name) return;
+        let level = prompt("Niveau (Primaire, Collège, Lycée, Supérieur)", student?.level || "Collège");
+        let phone = prompt("Téléphone", student?.phone || "");
+        let parentId = prompt(`ID Parent (optionnel) : ${parents.map(p => p.id + ":" + p.name).join(', ')}`, student?.parentId || "");
+        if (id) await setDoc(doc(getSubCol('eleves'), id), { fullName: name, level, phone, parentId });
+        else await setDoc(doc(getSubCol('eleves')), { fullName: name, level, phone, parentId });
+        showToast("Élève enregistré"); renderStudents();
+    }
+
+    async function renderParents() {
+        let parents = await getParents(), students = await getStudents();
+        let childrenMap = {};
+        students.forEach(s => { if (s.parentId) childrenMap[s.parentId] = [...(childrenMap[s.parentId] || []), s.fullName]; });
+        let html = `<button id="addParentBtn" class="btn btn-sm">Ajouter parent</button><div class="card">${parents.map(p => `<div><strong>${p.name}</strong> (${p.phone || ''}) - Enfants: ${childrenMap[p.id]?.join(', ') || 'aucun'} <button data-id="${p.id}" class="editParentBtn">✏️</button> <button data-id="${p.id}" class="deleteParentBtn">🗑️</button></div><hr>`).join('')}</div>`;
+        document.getElementById('parentsPanel').innerHTML = html;
+        document.getElementById('addParentBtn')?.addEventListener('click', async () => { let name = prompt("Nom parent"); if (name) { await setDoc(doc(getSubCol('parents')), { name, phone: prompt("Téléphone") }); renderParents(); } });
+    }
+
+    async function renderPayments() {
+        let payments = await getPayments(), students = await getStudents();
+        let studentMap = Object.fromEntries(students.map(s => [s.id, s.fullName]));
+        let levelsGroup = {};
+        payments.forEach(p => { if (!levelsGroup[p.level]) levelsGroup[p.level] = 0; levelsGroup[p.level] += Number(p.amount); });
+        let html = `<div class="flex-between"><button id="addPaymentBtn" class="btn btn-sm">+ Paiement</button><button id="pdfInvoiceBtn" class="btn btn-sm btn-outline">Facture sélectionnée</button></div>
+        <div class="card"><h3>Sous-totaux par niveau</h3>${Object.entries(levelsGroup).map(([lvl, sum]) => `<div>${lvl}: ${sum} DH</div>`).join('')}<h3>Historique</h3>
+        <div class="scroll-x">能able><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead><tbody>${payments.map(p => `<tr><td><input type="radio" name="selectedPayment" value="${p.id}"></td><td>${studentMap[p.studentId] || '?'}</td><td>${p.amount} DH</td><td>${p.date}</td><td>${p.level}</td><td><button class="singleInvoiceBtn" data-id="${p.id}">📄 PDF</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        document.getElementById('paymentsPanel').innerHTML = html;
+        document.getElementById('addPaymentBtn')?.addEventListener('click', async () => {
+            let studentsList = await getStudents();
+            let studentId = prompt("ID élève : " + studentsList.map(s => s.id + ":" + s.fullName).join(", "));
+            let amount = prompt("Montant"); let date = prompt("Date YYYY-MM-DD", new Date().toISOString().slice(0, 10));
+            let student = studentsList.find(s => s.id === studentId);
+            if (student && amount) { await setDoc(doc(getSubCol('paiements')), { studentId, amount: Number(amount), date, level: student.level }); showToast("Paiement ajouté"); renderPayments(); }
+        });
+        document.querySelectorAll('.singleInvoiceBtn').forEach(btn => btn.addEventListener('click', async (e) => {
+            const { jsPDF } = window.jspdf;
+            const payment = payments.find(p => p.id === btn.dataset.id);
+            const student = students.find(s => s.id === payment.studentId);
+            const doc = new jsPDF();
+            doc.text(`Facture de paiement - ${student?.fullName}`, 20, 20);
+            doc.text(`Montant : ${payment.amount} DH`, 20, 40);
+            doc.text(`Date : ${payment.date}`, 20, 50);
+            doc.text(`Niveau : ${payment.level}`, 20, 60);
+            doc.save(`facture_${payment.id}.pdf`);
+        }));
+        document.getElementById('pdfInvoiceBtn')?.addEventListener('click', () => { let selected = document.querySelector('input[name="selectedPayment"]:checked'); if (selected) document.querySelector(`.singleInvoiceBtn[data-id="${selected.value}"]`).click(); else showToast("Sélectionnez un paiement"); });
+    }
+
+    async function renderProfs() {
+        let profs = await getProfs();
+        let html = `<button id="addProfBtn" class="btn btn-sm">Ajouter professeur</button><div class="card">`;
+        for (let p of profs) {
+            let sessions = await getSessions(p.id);
+            let currentMonth = new Date().toISOString().slice(0, 7);
+            let monthSessions = sessions.filter(s => s.month === currentMonth).reduce((a, b) => a + Number(b.count), 0);
+            html += `<div><strong>${p.name}</strong> (${p.subject}) - Sessions ce mois: ${monthSessions} <button class="addSessionBtn" data-id="${p.id}">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}">🗑️</button></div><hr>`;
+        }
+        html += `</div>`;
+        document.getElementById('profsPanel').innerHTML = html;
+        document.getElementById('addProfBtn')?.addEventListener('click', async () => { let name = prompt("Nom"); let subject = prompt("Matière"); if (name) await setDoc(doc(getSubCol('profs')), { name, subject }); renderProfs(); });
+        document.querySelectorAll('.addSessionBtn').forEach(btn => btn.addEventListener('click', async (e) => {
+            let profId = btn.dataset.id; let month = prompt("Mois (YYYY-MM)", new Date().toISOString().slice(0, 7)); let count = prompt("Nombre de séances");
+            if (month && count) await setDoc(doc(collection(db, `centres/${currentUser.uid}/years/${activeYearId}/profs/${profId}/sessions`)), { month, count: Number(count) });
+            renderProfs();
+        }));
+    }
+
+    async function renderExpenses() {
+        let expenses = await getExpenses();
+        let html = `<button id="addExpenseBtn" class="btn btn-sm">Ajouter dépense</button><div class="card"><div class="scroll-x">能able><thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead><tbody>${expenses.map(e => `<tr><td>${e.desc}</td><td>${e.amount} DH</td><td>${e.date}</td><td>${e.category}</td><td><button class="deleteExpenseBtn" data-id="${e.id}">🗑️</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        document.getElementById('expensesPanel').innerHTML = html;
+        document.getElementById('addExpenseBtn')?.addEventListener('click', async () => {
+            let desc = prompt("Description"); let amount = prompt("Montant"); let date = prompt("Date"); let cat = prompt("Catégorie (loyer, salaire...)");
+            if (desc) await setDoc(doc(getSubCol('depenses')), { desc, amount: Number(amount), date, category: cat });
+            renderExpenses();
+        });
+        document.querySelectorAll('.deleteExpenseBtn').forEach(btn => btn.addEventListener('click', async () => { await deleteDoc(doc(getSubCol('depenses'), btn.dataset.id)); renderExpenses(); }));
+    }
+
+    async function renderSchedule() {
+        let scheduleSnap = await getDocs(getSubCol('schedule'));
+        let entries = scheduleSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let levels = ['Primaire', 'Collège', 'Lycée', 'Supérieur'];
+        let html = `<button id="addScheduleBtn" class="btn btn-sm">Ajouter cours</button>`;
+        for (let lvl of levels) {
+            html += `<div class="card"><h3>${lvl}</h3><div class="scroll-x">能able><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Prof</th><th></th></tr></thead><tbody>${entries.filter(e => e.level === lvl).map(e => `<tr><td>${e.day}</td><td>${e.timeSlot}</td><td>${e.subject}</td><td>${e.profName || ''}</td><td><button class="delSchedBtn" data-id="${e.id}">🗑️</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        }
+        document.getElementById('schedulePanel').innerHTML = html;
+        document.getElementById('addScheduleBtn')?.addEventListener('click', async () => {
+            let level = prompt("Niveau (Primaire, Collège...)"); let day = prompt("Jour (Lundi...)"); let time = prompt("Horaire (ex: 14h-16h)"); let subject = prompt("Matière"); let prof = prompt("Professeur");
+            if (level) await setDoc(doc(getSubCol('schedule')), { level, day, timeSlot: time, subject, profName: prof });
+            renderSchedule();
+        });
+        document.querySelectorAll('.delSchedBtn').forEach(btn => btn.addEventListener('click', async () => { await deleteDoc(doc(getSubCol('schedule'), btn.dataset.id)); renderSchedule(); }));
+    }
+
+    async function renderPlanning() {
+        let reservations = await getReservations();
+        let students = await getStudents(), profs = await getProfs();
+        let studentMap = Object.fromEntries(students.map(s => [s.id, s.fullName]));
+        let profMap = Object.fromEntries(profs.map(p => [p.id, p.name]));
+        let html = `<div class="flex-between"><h3>Réservations</h3><button id="addReservationBtn" class="btn btn-sm">+ Nouvelle réservation</button></div>
+        <div class="card"><div class="scroll-x">能able><thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${
+            reservations.map(r => `<tr><td>${r.date}</td><td>${r.timeSlot}</td><td>${studentMap[r.studentId] || ''}</td><td>${profMap[r.profId] || ''}</td><td>${r.level || ''}</td><td>${r.status}</td><td><button class="validateResBtn" data-id="${r.id}" ${r.status === 'validé' ? 'disabled' : ''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button></td></tr>`).join('')
+        }</tbody></table></div></div>`;
+        document.getElementById('planningPanel').innerHTML = html;
+        document.getElementById('addReservationBtn')?.addEventListener('click', async () => {
+            let studentId = prompt("ID élève : " + students.map(s => s.id + ":" + s.fullName).join(", "));
+            let profId = prompt("ID professeur : " + profs.map(p => p.id + ":" + p.name).join(", "));
+            let date = prompt("Date (YYYY-MM-DD)");
+            let timeSlot = prompt("Créneau (ex: 14h-16h)");
+            if (studentId && profId && date && timeSlot) {
+                let existing = await getReservations();
+                let conflict = existing.find(r => r.profId === profId && r.date === date && r.timeSlot === timeSlot && r.status !== 'annulé');
+                if (conflict) { showToast("Conflit : ce professeur est déjà réservé", "error"); return; }
+                await setDoc(doc(collection(db, `centres/${currentUser.uid}/reservations`)), { studentId, profId, date, timeSlot, level: students.find(s => s.id === studentId)?.level, status: 'en attente' });
+                showToast("Réservation créée"); renderPlanning();
+            }
+        });
+        document.querySelectorAll('.validateResBtn').forEach(btn => btn.addEventListener('click', async (e) => { await updateDoc(doc(db, `centres/${currentUser.uid}/reservations`, btn.dataset.id), { status: 'validé' }); renderPlanning(); }));
+        document.querySelectorAll('.cancelResBtn').forEach(btn => btn.addEventListener('click', async (e) => { await updateDoc(doc(db, `centres/${currentUser.uid}/reservations`, btn.dataset.id), { status: 'annulé' }); renderPlanning(); }));
+    }
+
+    async function renderInvoices() {
+        let invoices = await getInvoices(), students = await getStudents();
+        let html = `<div class="flex-between"><h3>Factures</h3><button id="createInvoiceBtn" class="btn btn-sm">Créer une facture</button><button id="payOnlineBtn" class="btn btn-sm btn-outline">Payer en ligne (test)</button></div>
+        <div class="card"><div class="scroll-x">能able><thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead><tbody>${
+            invoices.map(i => `<tr><td>${i.number}</td><td>${students.find(s => s.id === i.studentId)?.fullName}</td><td>${i.amountHT} DH</td><td>${i.tva}%</td><td>${i.totalTTC} DH</td><td>${i.dueDate}</td><td>${i.status}</td><td><button class="pdfInvoiceBtn" data-id="${i.id}">PDF</button></td></tr>`).join('')
+        }</tbody></table></div></div>`;
+        document.getElementById('invoicesPanel').innerHTML = html;
+        document.getElementById('createInvoiceBtn')?.addEventListener('click', async () => {
+            let studentId = prompt("ID élève"); let amountHT = prompt("Montant HT"); let tva = prompt("TVA (%)", "20"); let dueDate = prompt("Date d'échéance (YYYY-MM-DD)");
+            let number = "FACT-" + Date.now(); let totalTTC = amountHT * (1 + tva / 100);
+            await setDoc(doc(collection(db, `centres/${currentUser.uid}/invoices`)), { number, studentId, amountHT: parseFloat(amountHT), tva: parseFloat(tva), totalTTC, dueDate, status: 'envoyée', createdAt: new Date() });
+            showToast("Facture créée"); renderInvoices();
+        });
+        document.getElementById('payOnlineBtn')?.addEventListener('click', () => { const stripe = Stripe('pk_test_51H5L8nDummyTestKey'); stripe.redirectToCheckout({ lineItems: [{ price: 'price_test', quantity: 1 }], mode: 'payment', successUrl: window.location.href, cancelUrl: window.location.href }).catch(e => showToast("Mode test - clé stripe invalide")); });
+        document.querySelectorAll('.pdfInvoiceBtn').forEach(btn => btn.addEventListener('click', async (e) => {
+            const { jsPDF } = window.jspdf; const invoice = (await getInvoices()).find(i => i.id === btn.dataset.id); const student = (await getStudents()).find(s => s.id === invoice.studentId);
+            const doc = new jsPDF(); doc.text(`Facture ${invoice.number}`, 20, 20); doc.text(`Élève : ${student.fullName}`, 20, 40); doc.text(`Montant HT : ${invoice.amountHT} DH`, 20, 50); doc.text(`TVA : ${invoice.tva}%`, 20, 60); doc.text(`Total TTC : ${invoice.totalTTC} DH`, 20, 70); doc.text(`Échéance : ${invoice.dueDate}`, 20, 80); doc.save(`facture_${invoice.number}.pdf`);
+        }));
+    }
+
+    // Navigation et affichage
+    async function refreshCurrentPanel() {
+        const active = document.querySelector('.nav-item.active')?.dataset.panel || 'dashboard';
+        if (active === 'dashboard') await renderDashboard();
+        else if (active === 'students') await renderStudents();
+        else if (active === 'parents') await renderParents();
+        else if (active === 'payments') await renderPayments();
+        else if (active === 'profs') await renderProfs();
+        else if (active === 'expenses') await renderExpenses();
+        else if (active === 'schedule') await renderSchedule();
+        else if (active === 'planning') await renderPlanning();
+        else if (active === 'invoices') await renderInvoices();
+    }
+    function showPanel(panelId) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+        document.getElementById(panelId + 'Panel').classList.add('active-panel');
+        document.querySelectorAll('.nav-item').forEach(btn => { if (btn.dataset.panel === panelId) btn.classList.add('active'); else btn.classList.remove('active'); });
+        refreshCurrentPanel();
+    }
+
+    // Construction de l'interface principale après connexion
+    function buildAppUI() {
+        document.getElementById('appContainer').innerHTML = `
+            <div class="flex-between" style="margin-bottom: 1rem;">
+                <h2><i class="fas fa-graduation-cap"></i> <span data-i18n="appName">Centre Astuces</span></h2>
+                <div>
+                    <select id="langSelect" class="lang-select"><option value="fr">🇫🇷</option><option value="en">🇬🇧</option><option value="ar">🇸🇦</option></select>
+                    <button id="logoutBtn" class="btn btn-sm btn-outline"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+            <div class="flex-between" style="margin-bottom: 1rem;">
+                <div><strong>Année active :</strong> <span id="activeYearLabel">-</span></div>
+                <div><button id="manageYearsBtn" class="btn btn-sm"><i class="fas fa-calendar-alt"></i> Gérer années</button>
+                <button id="backupExportBtn" class="btn btn-sm btn-outline"><i class="fas fa-download"></i> JSON</button>
+                <button id="backupImportBtn" class="btn btn-sm btn-outline"><i class="fas fa-upload"></i> Importer</button></div>
+            </div>
+            <div class="bottom-nav">
+                <button class="nav-item" data-panel="dashboard"><i class="fas fa-chart-line"></i><span data-i18n="dashboard">Dashboard</span></button>
+                <button class="nav-item" data-panel="students"><i class="fas fa-user-graduate"></i><span data-i18n="students">Élèves</span></button>
+                <button class="nav-item" data-panel="parents"><i class="fas fa-users"></i><span data-i18n="parents">Parents</span></button>
+                <button class="nav-item" data-panel="payments"><i class="fas fa-coins"></i><span data-i18n="payments">Paiements</span></button>
+                <button class="nav-item" data-panel="profs"><i class="fas fa-chalkboard"></i><span data-i18n="teachers">Professeurs</span></button>
+                <button class="nav-item" data-panel="expenses"><i class="fas fa-receipt"></i><span data-i18n="expenses">Dépenses</span></button>
+                <button class="nav-item" data-panel="schedule"><i class="fas fa-calendar-week"></i><span data-i18n="schedule">Emploi</span></button>
+                <button class="nav-item" data-panel="planning"><i class="fas fa-calendar-check"></i><span data-i18n="planning">Réservations</span></button>
+                <button class="nav-item" data-panel="invoices"><i class="fas fa-file-invoice"></i><span data-i18n="invoices">Factures</span></button>
+            </div>
+            <div id="dashboardPanel" class="panel"></div><div id="studentsPanel" class="panel"></div><div id="parentsPanel" class="panel"></div>
+            <div id="paymentsPanel" class="panel"></div><div id="profsPanel" class="panel"></div><div id="expensesPanel" class="panel"></div>
+            <div id="schedulePanel" class="panel"></div><div id="planningPanel" class="panel"></div><div id="invoicesPanel" class="panel"></div>
+        `;
+        document.getElementById('langSelect').value = currentLang;
+        document.getElementById('langSelect').addEventListener('change', (e) => { currentLang = e.target.value; localStorage.setItem('lang', currentLang); document.dispatchEvent(new Event('langChanged')); refreshCurrentPanel(); });
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+        document.getElementById('manageYearsBtn').addEventListener('click', openYearModal);
+        document.getElementById('backupExportBtn').addEventListener('click', async () => {
+            if (!activeYearId) return;
+            const data = { students: await getStudents(), parents: await getParents(), payments: await getPayments(), profs: await getProfs(), expenses: await getExpenses(), schedule: (await getDocs(getSubCol('schedule'))).docs.map(d => d.data()) };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup_${activeYearId}.json`; a.click(); showToast("Exporté");
+        });
+        const importInput = document.createElement('input'); importInput.type = 'file'; importInput.accept = 'application/json';
+        document.getElementById('backupImportBtn').addEventListener('click', () => importInput.click());
+        importInput.onchange = async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = async (ev) => {
+                const data = JSON.parse(ev.target.result); const batch = writeBatch(db);
+                for (let s of (data.students || [])) { const ref = doc(getSubCol('eleves')); batch.set(ref, s); }
+                for (let p of (data.parents || [])) batch.set(doc(getSubCol('parents')), p);
+                for (let pay of (data.payments || [])) batch.set(doc(getSubCol('paiements')), pay);
+                for (let pr of (data.profs || [])) batch.set(doc(getSubCol('profs')), pr);
+                for (let exp of (data.expenses || [])) batch.set(doc(getSubCol('depenses')), exp);
+                for (let sch of (data.schedule || [])) batch.set(doc(getSubCol('schedule')), sch);
+                await batch.commit(); showToast("Importé"); refreshCurrentPanel();
+            }; reader.readAsText(file);
+        };
+        document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showPanel(btn.dataset.panel)));
+        loadYearsAndActive().then(() => showPanel('dashboard'));
+    }
+
+    // Écran d'authentification
+    function renderAuth() {
+        document.getElementById('authWrapper').innerHTML = `
+            <div class="auth-card">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-chalkboard-user"></i> Centre Astuces</h2>
+                <div id="authTabs" class="flex-between" style="margin-bottom: 1rem;">
+                    <button id="showLoginBtn" class="btn btn-outline" style="flex:1; margin-right:0.5rem;">Connexion</button>
+                    <button id="showSignupBtn" class="btn btn-outline" style="flex:1;">Inscription</button>
+                </div>
+                <div id="loginForm"><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPassword" placeholder="Mot de passe" style="margin-top:0.8rem;"><button id="doLoginBtn" class="btn" style="width:100%; margin-top:1.5rem;">Se connecter</button></div>
+                <div id="signupForm" style="display:none;"><input type="email" id="signupEmail" placeholder="Email"><input type="password" id="signupPassword" placeholder="Mot de passe"><button id="doSignupBtn" class="btn" style="width:100%; margin-top:1.5rem;">Créer mon centre</button></div>
+            </div>
+        `;
+        document.getElementById('showLoginBtn').onclick = () => { document.getElementById('loginForm').style.display = 'block'; document.getElementById('signupForm').style.display = 'none'; };
+        document.getElementById('showSignupBtn').onclick = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('signupForm').style.display = 'block'; };
+        document.getElementById('doLoginBtn').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value).catch(e => showToast(e.message, 'error'));
+        document.getElementById('doSignupBtn').onclick = () => createUserWithEmailAndPassword(auth, document.getElementById('signupEmail').value, document.getElementById('signupPassword').value).catch(e => showToast(e.message, 'error'));
+    }
+
+    // Gestion de l'état d'authentification
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('authWrapper').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            buildAppUI();
+        } else {
+            currentUser = null;
+            document.getElementById('authWrapper').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            renderAuth();
+        }
+    });
+
+    // Initialisation
+    renderAuth();
 </script>
 </body>
-</html>
+    </html>
