@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Centre Astuces - Plateforme complète</title>
+    <title>Centre Astuces - Version finale</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -82,13 +82,11 @@
     let currentUserRole = "centre";
     let currentCentreId = null;
 
-    // Helper functions
     function showToast(msg, type = "info") { let t = document.querySelector('.toast'); if (t) t.remove(); let div = document.createElement('div'); div.className = 'toast'; div.innerText = msg; if (type === 'error') div.style.borderLeftColor = '#EF4444'; document.body.appendChild(div); setTimeout(() => div.remove(), 3000); }
     function loading(show = true) { let l = document.getElementById('loader'); if (!l && show) { let d = document.createElement('div'); d.id = 'loader'; d.className = 'loading-overlay'; d.innerHTML = '<div class="card">Chargement...</div>'; document.body.appendChild(d); } else if (l && !show) l.remove(); }
     function getYearRef() { if (!currentUser || !activeYearId) return null; return doc(db, `centres/${currentCentreId || currentUser.uid}/years/${activeYearId}`); }
     function getSubCol(name) { return collection(getYearRef(), name); }
 
-    // Data getters
     async function getStudents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('eleves')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
     async function getParents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('parents')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
     async function getPayments() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('paiements')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
@@ -105,7 +103,6 @@
     async function addNotification(message) { await setDoc(doc(collection(db, `centres/${currentCentreId || currentUser.uid}/notifications`)), { message, date: new Date(), read: false }); updateNotificationBadge(); }
     async function updateNotificationBadge() { const notifs = await getNotifications(); const unread = notifs.filter(n => !n.read).length; const badge = document.getElementById('notifBadge'); if (badge) badge.style.display = unread ? "block" : "none"; }
 
-    // Years management
     async function loadYearsAndActive() {
         if (!currentUser) return;
         loading(true);
@@ -122,9 +119,8 @@
         loading(false);
         refreshCurrentPanel();
     }
-    async function openYearModal() { if (currentUserRole !== 'centre') return; let name = prompt("Nom année scolaire"); if (!name) return; loading(true); const centreId = currentCentreId || currentUser.uid; await setDoc(doc(collection(db, `centres/${centreId}/years`)), { name, active: yearsList.length === 0 }); await loadYearsAndActive(); showToast("Année créée"); }
+    async function openYearModal() { if (currentUserRole !== 'centre') return; let name = prompt("Nom année scolaire (ex: 2024-2025)"); if (!name) return; loading(true); const centreId = currentCentreId || currentUser.uid; await setDoc(doc(collection(db, `centres/${centreId}/years`)), { name, active: yearsList.length === 0, createdAt: new Date() }); await loadYearsAndActive(); showToast("Année créée"); }
 
-    // Modal helper
     function openModal(title, fields, onSubmit) {
         const modalDiv = document.createElement('div');
         modalDiv.className = 'modal';
@@ -142,7 +138,6 @@
         };
     }
 
-    // ========== RENDER FUNCTIONS FOR CENTRE ==========
     async function renderDashboard() {
         if (!activeYearId) { document.getElementById('dashboardPanel').innerHTML = '<div class="card">Sélectionnez ou créez une année scolaire</div>'; return; }
         loading(true);
@@ -168,13 +163,37 @@
         const parentMap = Object.fromEntries(parents.map(p=>[p.id, p.name]));
         let html = `<div class="flex-between"><h2>Élèves</h2><button id="addStudentBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
         <input type="text" id="searchStudent" placeholder="Rechercher...">
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Nom</th><th>Niveau</th><th>Téléphone</th><th>Parent</th><th>Actions</th></tr></thead><tbody>
-            ${students.map(s => `<tr><td>${s.fullName}</td><td>${s.level}</td><td>${s.phone||''}</td><td>${parentMap[s.parentId]||'—'}</td><td><button data-id="${s.id}" class="editStudentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${s.id}" class="deleteStudentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Nom</th><th>Niveau</th><th>Téléphone</th><th>Parent</th><th>Actions</th></tr></thead><tbody>
+            ${students.map(s => `<tr>
+                <td>${s.fullName}</td>
+                <td>${s.level}</td>
+                <td>${s.phone||''}</td>
+                <td>${parentMap[s.parentId]||'—'}</td>
+                <td>
+                    <button data-id="${s.id}" class="editStudentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button>
+                    <button data-id="${s.id}" class="deleteStudentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                    <button data-id="${s.id}" class="createStudentAccountBtn btn-sm btn-outline"><i class="fas fa-user-plus"></i> Créer compte</button>
+                </td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('studentsPanel').innerHTML = html;
         document.getElementById('addStudentBtn')?.addEventListener('click', () => openModal("Ajouter élève", [{id:"name",label:"Nom"},{id:"level",label:"Niveau"},{id:"phone",label:"Téléphone"},{id:"parentId",label:"ID Parent"}], async (data)=>{ await setDoc(doc(getSubCol('eleves')),{fullName:data.name,level:data.level,phone:data.phone,parentId:data.parentId}); showToast("Ajouté"); renderStudents(); }));
         document.querySelectorAll('.editStudentBtn').forEach(btn=>btn.addEventListener('click',async()=>{ let s=(await getStudents()).find(s=>s.id===btn.dataset.id); openModal("Modifier élève",[{id:"name",label:"Nom",value:s.fullName},{id:"level",label:"Niveau",value:s.level},{id:"phone",label:"Téléphone",value:s.phone},{id:"parentId",label:"Parent ID",value:s.parentId}],async(data)=>{ await setDoc(doc(getSubCol('eleves'),btn.dataset.id),{fullName:data.name,level:data.level,phone:data.phone,parentId:data.parentId}); showToast("Modifié"); renderStudents(); }); }));
         document.querySelectorAll('.deleteStudentBtn').forEach(btn=>btn.addEventListener('click',async()=>{ if(confirm("Supprimer ?")){ await deleteDoc(doc(getSubCol('eleves'),btn.dataset.id)); showToast("Supprimé"); renderStudents(); } }));
+        document.querySelectorAll('.createStudentAccountBtn').forEach(btn=>btn.addEventListener('click', async () => {
+            let studentId = btn.dataset.id;
+            let student = (await getStudents()).find(s=>s.id===studentId);
+            let email = prompt("Email pour l'élève (ex: "+student.fullName.replace(/\s/g,'').toLowerCase()+"@exemple.com)");
+            if(!email) return;
+            let password = prompt("Mot de passe (laisser vide pour 'student123')", "student123");
+            if(!password) password = "student123";
+            try {
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/studentAccounts`, userCred.user.uid), { email, studentId, createdAt: new Date() });
+                await setDoc(doc(db, 'users', userCred.user.uid), { email, role: 'student', centreId: currentCentreId || currentUser.uid, createdAt: new Date() });
+                showToast(`Compte élève créé. Mot de passe: ${password}`);
+            } catch(e) { showToast(e.message, "error"); }
+        }));
     }
 
     async function renderParents() {
@@ -182,7 +201,7 @@
         let childrenMap = {};
         students.forEach(s=>{ if(s.parentId) childrenMap[s.parentId] = [...(childrenMap[s.parentId]||[]), s.fullName]; });
         let html = `<div class="flex-between"><h2>Parents</h2><button id="addParentBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Nom</th><th>Téléphone</th><th>Enfants</th><th>Actions</th></tr></thead><tbody>
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Nom</th><th>Téléphone</th><th>Enfants</th><th>Actions</th></tr></thead><tbody>
             ${parents.map(p=>`<tr><td>${p.name}</td><td>${p.phone||''}</td><td>${childrenMap[p.id]?.join(', ')||'aucun'}</td><td><button data-id="${p.id}" class="editParentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${p.id}" class="deleteParentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('parentsPanel').innerHTML = html;
@@ -198,7 +217,7 @@
         payments.forEach(p=>{ if(!levelsGroup[p.level]) levelsGroup[p.level]=0; levelsGroup[p.level]+=Number(p.amount); });
         let html = `<div class="flex-between"><h2>Paiements</h2><button id="addPaymentBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button><button id="pdfInvoiceBtn" class="btn btn-sm btn-outline">Facture sélectionnée</button></div>
         <div class="card"><h3>Sous-totaux par niveau</h3><div class="grid-2">${Object.entries(levelsGroup).map(([lvl,sum])=>`<div>${lvl}: <strong>${sum} DH</strong></div>`).join('')}</div>
-        <h3>Historique</h3><div class="table-wrapper"><table><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead><tbody>
+        <h3>Historique</h3><div class="table-wrapper">能able><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead><tbody>
             ${payments.map(p=>`<tr><td><input type="radio" name="selectedPayment" value="${p.id}"></td><td>${studentMap[p.studentId]||'?'}</td><td>${p.amount} DH</td><td>${p.date}</td><td>${p.level}</td><td><button class="singleInvoiceBtn" data-id="${p.id}">📄 PDF</button></td></tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('paymentsPanel').innerHTML = html;
@@ -210,7 +229,7 @@
     async function renderProfs() {
         let profs = await getProfs();
         let html = `<div class="flex-between"><h2>Professeurs</h2><button id="addProfBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Nom</th><th>Matière</th><th>Sessions ce mois</th><th>Actions</th></tr></thead><tbody>
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Nom</th><th>Matière</th><th>Sessions ce mois</th><th>Actions</th></tr></thead><tbody>
             ${await Promise.all(profs.map(async p=>{ let sessions=await getSessions(p.id); let currentMonth=new Date().toISOString().slice(0,7); let monthSessions=sessions.filter(s=>s.month===currentMonth).reduce((a,b)=>a+Number(b.count),0); return `<tr><td>${p.name}</td><td>${p.subject}</td><td>${monthSessions}</td><td><button class="addSessionBtn" data-id="${p.id}" class="btn-sm btn-outline">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`; }))}
         </tbody></table></div></div>`;
         document.getElementById('profsPanel').innerHTML = html;
@@ -222,8 +241,8 @@
     async function renderExpenses() {
         let expenses = await getExpenses();
         let html = `<div class="flex-between"><h2>Dépenses</h2><button id="addExpenseBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
-        <div class="card"><div class="table-wrapper"><tr><thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead><tbody>
-            ${expenses.map(e=>`<tr><td>${e.desc}</td><td>${e.amount} DH</td><td>${e.date}</td><td>${e.category}</td><td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead><tbody>
+            ${expenses.map(e=>`<tr><td>${e.desc}</td><td>${e.amount} DH</td><td>${e.date}</td><td>${e.category}</td><td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('expensesPanel').innerHTML = html;
         document.getElementById('addExpenseBtn')?.addEventListener('click',()=>openModal("Ajouter dépense",[{id:"desc",label:"Description"},{id:"amount",label:"Montant"},{id:"date",label:"Date"},{id:"category",label:"Catégorie"}],async(data)=>{ await setDoc(doc(getSubCol('depenses')),{desc:data.desc,amount:Number(data.amount),date:data.date,category:data.category}); showToast("Ajoutée"); renderExpenses(); }));
@@ -236,7 +255,7 @@
         let levels = ['Primaire','Collège','Lycée','Supérieur'];
         let html = `<div class="flex-between"><h2>Emploi du temps</h2><button id="addScheduleBtn" class="btn"><i class="fas fa-plus"></i> Ajouter cours</button></div>`;
         for(let lvl of levels){
-            html += `<div class="card"><h3>${lvl}</h3><div class="table-wrapper"><table><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Professeur</th><th></th></tr></thead><tbody>
+            html += `<div class="card"><h3>${lvl}</h3><div class="table-wrapper">能able><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Professeur</th><th></th></tr></thead><tbody>
                 ${entries.filter(e=>e.level===lvl).map(e=>`<tr><td>${e.day}</td><td>${e.timeSlot}</td><td>${e.subject}</td><td>${e.profName||''}</td><td><button class="delSchedBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`).join('')}
             </tbody></table></div></div>`;
         }
@@ -250,8 +269,16 @@
         let studentMap = Object.fromEntries(students.map(s=>[s.id,s.fullName]));
         let profMap = Object.fromEntries(profs.map(p=>[p.id,p.name]));
         let html = `<div class="flex-between"><h2>Réservations</h2><button id="addReservationBtn" class="btn"><i class="fas fa-plus"></i> Nouvelle réservation</button></div>
-        <div class="card"><div class="table-wrapper"><tr><thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
-            ${reservations.map(r=>`<tr><td>${r.date}</td><td>${r.timeSlot}</td><td>${studentMap[r.studentId]||''}</td><td>${profMap[r.profId]||''}</td><td>${r.level||''}</td><td>${r.status}</td><td><button class="validateResBtn" data-id="${r.id}" ${r.status==='validé'?'disabled':''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Date</th><th>Créneau</th><th>Élève</th><th>Professeur</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
+            ${reservations.map(r=>`<tr>
+                <td>${r.date}</td>
+                <td>${r.timeSlot}</td>
+                <td>${studentMap[r.studentId]||''}</td>
+                <td>${profMap[r.profId]||''}</td>
+                <td>${r.level||''}</td>
+                <td>${r.status}</td>
+                <td><button class="validateResBtn" data-id="${r.id}" ${r.status==='validé'?'disabled':''}>Valider</button> <button class="cancelResBtn" data-id="${r.id}">Annuler</button></td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('planningPanel').innerHTML = html;
         document.getElementById('addReservationBtn')?.addEventListener('click',async()=>{ let studentId=prompt("ID élève : "+students.map(s=>s.id+":"+s.fullName).join(", ")); let profId=prompt("ID professeur : "+profs.map(p=>p.id+":"+p.name).join(", ")); let date=prompt("Date YYYY-MM-DD"); let timeSlot=prompt("Créneau"); if(studentId && profId && date){ await setDoc(doc(collection(db,`centres/${currentCentreId || currentUser.uid}/reservations`)),{studentId,profId,date,timeSlot,level:students.find(s=>s.id===studentId)?.level,status:'en attente'}); addNotification(`Nouvelle réservation de ${studentMap[studentId]}`); showToast("Réservation créée"); renderPlanning(); } });
@@ -262,8 +289,17 @@
     async function renderInvoices() {
         let invoices = await getInvoices(), students = await getStudents();
         let html = `<div class="flex-between"><h2>Factures</h2><div><button id="createInvoiceBtn" class="btn"><i class="fas fa-plus"></i> Créer facture</button><button id="payOnlineBtn" class="btn btn-sm btn-outline">Payer en ligne</button></div></div>
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead><tbody>
-            ${invoices.map(i=>`<tr><td>${i.number}</td><td>${students.find(s=>s.id===i.studentId)?.fullName}</td><td>${i.amountHT} DH</td><td>${i.tva}%</td><td>${i.totalTTC} DH</td><td>${i.dueDate}</td><td>${i.status}</td><td><button class="pdfInvoiceBtn" data-id="${i.id}">PDF</button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>N°</th><th>Élève</th><th>Montant HT</th><th>TVA</th><th>Total TTC</th><th>Échéance</th><th>Statut</th><th>PDF</th></tr></thead><tbody>
+            ${invoices.map(i=>`<tr>
+                <td>${i.number}</td>
+                <td>${students.find(s=>s.id===i.studentId)?.fullName}</td>
+                <td>${i.amountHT} DH</td>
+                <td>${i.tva}%</td>
+                <td>${i.totalTTC} DH</td>
+                <td>${i.dueDate}</td>
+                <td>${i.status}</td>
+                <td><button class="pdfInvoiceBtn" data-id="${i.id}">PDF</button></td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('invoicesPanel').innerHTML = html;
         document.getElementById('createInvoiceBtn')?.addEventListener('click',async()=>{ let studentId=prompt("ID élève"); let amountHT=prompt("Montant HT"); let tva=prompt("TVA %","20"); let dueDate=prompt("Date échéance"); let number="FACT-"+Date.now(); let totalTTC=amountHT*(1+tva/100); await setDoc(doc(collection(db,`centres/${currentCentreId || currentUser.uid}/invoices`)),{number,studentId,amountHT:parseFloat(amountHT),tva:parseFloat(tva),totalTTC,dueDate,status:'envoyée'}); addNotification(`Facture ${number} créée`); showToast("Facture créée"); renderInvoices(); });
@@ -274,8 +310,13 @@
     async function renderAttendance() {
         let attendance = await getAttendance(), students = await getStudents();
         let html = `<div class="flex-between"><h2>Présences</h2><button id="addAttendanceBtn" class="btn">Ajouter présence</button><button id="exportAttendancePDFBtn" class="btn btn-outline">Export PDF</button></div>
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Élève</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
-            ${attendance.map(a=>`<tr><td>${a.date}</td><td>${students.find(s=>s.id===a.studentId)?.fullName}</td><td>${a.status}</td><td><button class="deleteAttendanceBtn" data-id="${a.id}">🗑️</button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Date</th><th>Élève</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
+            ${attendance.map(a=>`<tr>
+                <td>${a.date}</td>
+                <td>${students.find(s=>s.id===a.studentId)?.fullName}</td>
+                <td>${a.status}</td>
+                <td><button class="deleteAttendanceBtn" data-id="${a.id}">🗑️</button></tr>
+            `).join('')}
         </tbody></table></div></div>`;
         document.getElementById('attendancePanel').innerHTML = html;
         document.getElementById('addAttendanceBtn')?.addEventListener('click',async()=>{ let studentId=prompt("ID élève : "+students.map(s=>s.id+":"+s.fullName).join(", ")); let date=prompt("Date YYYY-MM-DD"); let status=prompt("Statut (présent/absent/retard)"); if(studentId && date) await setDoc(doc(collection(db,`centres/${currentCentreId || currentUser.uid}/attendance`)),{studentId,date,status}); renderAttendance(); });
@@ -286,8 +327,15 @@
     async function renderGrades() {
         let notes = await getNotes(), students = await getStudents();
         let html = `<div class="flex-between"><h2>Notes</h2><button id="addGradeBtn" class="btn">Ajouter note</button><button id="exportReportCardBtn" class="btn btn-outline">Bulletin PDF</button></div>
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Élève</th><th>Matière</th><th>Note</th><th>Trimestre</th><th>Date</th><th>Actions</th></tr></thead><tbody>
-            ${notes.map(n=>`<tr><td>${students.find(s=>s.id===n.studentId)?.fullName}</td><td>${n.subject}</td><td>${n.grade}</td><td>${n.term}</td><td>${n.date}</td><td><button class="deleteGradeBtn" data-id="${n.id}">🗑️</button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Élève</th><th>Matière</th><th>Note</th><th>Trimestre</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+            ${notes.map(n=>`<tr>
+                <td>${students.find(s=>s.id===n.studentId)?.fullName}</td>
+                <td>${n.subject}</td>
+                <td>${n.grade}</td>
+                <td>${n.term}</td>
+                <td>${n.date}</td>
+                <td><button class="deleteGradeBtn" data-id="${n.id}">🗑️</button></tr>
+            `).join('')}
         </tbody></table></div></div><div class="card"><canvas id="gradeChart"></canvas></div>`;
         document.getElementById('gradesPanel').innerHTML = html;
         document.getElementById('addGradeBtn')?.addEventListener('click',async()=>{ let studentId=prompt("ID élève : "+students.map(s=>s.id+":"+s.fullName).join(", ")); let subject=prompt("Matière"); let grade=prompt("Note /20"); let term=prompt("Trimestre (1,2,3)"); let date=new Date().toISOString().slice(0,10); if(studentId && subject && grade) await setDoc(doc(collection(db,`centres/${currentCentreId || currentUser.uid}/notes`)),{studentId,subject,grade:parseFloat(grade),term,date}); renderGrades(); });
@@ -300,17 +348,44 @@
 
     async function renderParentPortal() {
         let parentAccounts = await getParentAccounts(), parents = await getParents(), students = await getStudents();
-        let html = `<div class="flex-between"><h2>Gestion des comptes parents</h2><button id="createParentAccountBtn" class="btn"><i class="fas fa-plus"></i> Créer compte parent</button></div>
-        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Email</th><th>Parent lié</th><th>Élèves liés</th><th>Actions</th></tr></thead><tbody>
-            ${parentAccounts.map(pa=>`<tr><td>${pa.email}</td><td>${parents.find(p=>p.id===pa.parentId)?.name||''}</td><td><select multiple id="studentSelect_${pa.id}" style="min-width:150px">${students.map(s=>`<option value="${s.id}" ${(pa.studentIds||[]).includes(s.id)?'selected':''}>${s.fullName}</option>`).join('')}</select></td><td><button class="linkStudentsBtn" data-id="${pa.id}">Lier</button> <button class="deleteParentAccountBtn" data-id="${pa.id}">🗑️</button></td></tr>`).join('')}
-        </tbody></table></div></div>`;
+        let html = `
+            <div class="flex-between"><h2>Gestion des comptes parents</h2></div>
+            <div class="card">
+                <h3>Créer un nouveau compte parent</h3>
+                <input type="email" id="newParentEmail" placeholder="Email du parent">
+                <input type="text" id="newParentPassword" placeholder="Mot de passe (laisser vide pour générer auto)">
+                <select id="newParentParentId"><option value="">-- Lier à un parent existant (optionnel) --</option>${parents.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                <button id="createParentBtn" class="btn" style="margin-top:0.5rem">Créer le compte parent</button>
+            </div>
+            <div class="card"><div class="table-wrapper">能able><thead><tr><th>Email</th><th>Parent lié</th><th>Élèves liés</th><th>Actions</th></tr></thead><tbody>
+                ${parentAccounts.map(pa=>`<tr>
+                    <td>${pa.email}</td>
+                    <td>${parents.find(p=>p.id===pa.parentId)?.name||''}</td>
+                    <td><select multiple id="studentSelect_${pa.id}" style="min-width:150px">${students.map(s=>`<option value="${s.id}" ${(pa.studentIds||[]).includes(s.id)?'selected':''}>${s.fullName}</option>`).join('')}</select></td>
+                    <td><button class="linkStudentsBtn" data-id="${pa.id}">Lier</button> <button class="deleteParentAccountBtn" data-id="${pa.id}">🗑️</button></td>
+                </tr>`).join('')}
+            </tbody></table></div></div>`;
         document.getElementById('parentPortalPanel').innerHTML = html;
-        document.getElementById('createParentAccountBtn')?.addEventListener('click', async () => { let email=prompt("Email du parent"); let pwd=prompt("Mot de passe"); let parentId=prompt("ID parent (optionnel)"); if(email && pwd) { try { const cred = await createUserWithEmailAndPassword(auth, email, pwd); await setDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/parentAccounts`, cred.user.uid), { email, parentId: parentId || null, studentIds: [] }); await setDoc(doc(db, 'users', cred.user.uid), { email, role: 'parent', centreId: currentCentreId || currentUser.uid, createdAt: new Date() }); showToast("Compte parent créé"); renderParentPortal(); } catch(e) { showToast(e.message, 'error'); } } });
+        document.getElementById('createParentBtn')?.addEventListener('click', async () => {
+            let email = document.getElementById('newParentEmail').value;
+            let password = document.getElementById('newParentPassword').value;
+            if (!email) return showToast("Email requis");
+            if (!password) password = "parent123";
+            let parentId = document.getElementById('newParentParentId').value;
+            try {
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/parentAccounts`, userCred.user.uid), { email, parentId: parentId || null, studentIds: [] });
+                await setDoc(doc(db, 'users', userCred.user.uid), { email, role: 'parent', centreId: currentCentreId || currentUser.uid, createdAt: new Date() });
+                showToast(`Compte parent créé. Mot de passe: ${password}`);
+                document.getElementById('newParentEmail').value = '';
+                document.getElementById('newParentPassword').value = '';
+                renderParentPortal();
+            } catch(e) { showToast(e.message, "error"); }
+        });
         document.querySelectorAll('.linkStudentsBtn').forEach(btn=>btn.addEventListener('click', async ()=>{ let accountId=btn.dataset.id; let select=document.getElementById(`studentSelect_${accountId}`); let studentIds=Array.from(select.selectedOptions).map(opt=>opt.value); await updateDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/parentAccounts`, accountId), { studentIds }); showToast("Liens mis à jour"); }));
         document.querySelectorAll('.deleteParentAccountBtn').forEach(btn=>btn.addEventListener('click', async ()=>{ if(confirm("Supprimer ce compte parent ?")){ await deleteDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/parentAccounts`, btn.dataset.id)); renderParentPortal(); } }));
     }
 
-    // Navigation
     async function refreshCurrentPanel() {
         const active = document.querySelector('.nav-item.active')?.dataset.panel || 'dashboard';
         if (active === 'dashboard') await renderDashboard();
@@ -333,7 +408,45 @@
         refreshCurrentPanel();
     }
 
-    // Build Centre UI
+    async function renderParentDashboard() {
+        const parentDoc = await getDoc(doc(db, `centres/${currentCentreId}/parentAccounts`, currentUser.uid));
+        if (!parentDoc.exists()) return;
+        const linkedStudentIds = parentDoc.data().studentIds || [];
+        const students = (await getStudents()).filter(s => linkedStudentIds.includes(s.id));
+        const payments = (await getPayments()).filter(p => linkedStudentIds.includes(p.studentId));
+        const scheduleSnap = await getDocs(getSubCol('schedule'));
+        const schedule = scheduleSnap.docs.map(d => d.data());
+        const notes = (await getNotes()).filter(n => linkedStudentIds.includes(n.studentId));
+        const attendance = (await getAttendance()).filter(a => linkedStudentIds.includes(a.studentId));
+        let html = `<div class="card"><h3>Mes enfants</h3><ul>${students.map(s => `<li>${s.fullName} (${s.level})</li>`).join('')}</ul></div>
+        <div class="card"><h3>Paiements récents</h3><div class="table-wrapper">能able>${payments.map(p => `<tr><td>${p.amount} DH</td><td>${p.date}</td></tr>`).join('')}</table></div></div>
+        <div class="card"><h3>Emploi du temps</h3>${schedule.map(s => `<div>${s.level}: ${s.day} ${s.timeSlot} - ${s.subject}</div>`).join('')}</div>
+        <div class="card"><h3>Notes</h3><div class="table-wrapper">能able>${notes.map(n => `<tr><td>${n.subject} - ${n.grade}/20 (${n.term})</td></tr>`).join('')}</table></div></div>
+        <div class="card"><h3>Présences</h3><div class="table-wrapper">能able>${attendance.map(a => `<tr><td>${a.date} - ${a.status}</td></tr>`).join('')}</table></div></div>
+        <button id="parentReserveBtn" class="btn">Réserver un créneau</button>`;
+        document.getElementById('parentDashboardPanel').innerHTML = html;
+        document.getElementById('parentReserveBtn')?.addEventListener('click', async () => {
+            let profId = prompt("ID professeur : " + (await getProfs()).map(p=>p.id+":"+p.name).join(", "));
+            let date = prompt("Date YYYY-MM-DD");
+            let timeSlot = prompt("Créneau (ex: 14h-16h)");
+            if (profId && date && timeSlot) {
+                await setDoc(doc(collection(db, `centres/${currentCentreId}/reservations`)), { studentId: linkedStudentIds[0], profId, date, timeSlot, status: 'en attente', parentEmail: currentUser.email });
+                await addNotification(`Nouvelle réservation de ${currentUser.email} pour le ${date}`);
+                showToast("Réservation envoyée");
+                renderParentDashboard();
+            }
+        });
+    }
+
+    function buildParentUI() {
+        document.getElementById('appContainer').innerHTML = `
+            <div class="flex-between" style="margin-bottom:1rem"><h1><i class="fas fa-graduation-cap"></i> Espace Parent</h1><div><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div></div>
+            <div id="parentDashboardPanel" class="panel active-panel"></div>
+        `;
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        loadYearsAndActive().then(() => renderParentDashboard());
+    }
+
     function buildAppUI() {
         document.getElementById('appContainer').innerHTML = `
             <div class="flex-between"><h1><i class="fas fa-graduation-cap"></i> Centre Astuces</h1><div><div class="notification-icon" id="notifIcon"><i class="fas fa-bell"></i><span id="notifBadge" class="notification-badge"></span></div><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div></div>
@@ -369,47 +482,6 @@
         document.getElementById('notifIcon')?.addEventListener('click', async () => { let notifs = await getNotifications(); let msg = notifs.filter(n=>!n.read).map(n=>n.message).join('\n'); alert(msg || "Aucune notification"); for(let n of notifs.filter(n=>!n.read)) await updateDoc(doc(db,`centres/${currentCentreId || currentUser.uid}/notifications`,n.id),{read:true}); updateNotificationBadge(); });
     }
 
-    // Parent UI
-    async function renderParentDashboard() {
-        const parentDoc = await getDoc(doc(db, `centres/${currentCentreId}/parentAccounts`, currentUser.uid));
-        if (!parentDoc.exists()) return;
-        const linkedStudentIds = parentDoc.data().studentIds || [];
-        const students = (await getStudents()).filter(s => linkedStudentIds.includes(s.id));
-        const payments = (await getPayments()).filter(p => linkedStudentIds.includes(p.studentId));
-        const scheduleSnap = await getDocs(getSubCol('schedule'));
-        const schedule = scheduleSnap.docs.map(d => d.data());
-        const notes = (await getNotes()).filter(n => linkedStudentIds.includes(n.studentId));
-        const attendance = (await getAttendance()).filter(a => linkedStudentIds.includes(a.studentId));
-        let html = `<div class="card"><h3>Mes enfants</h3><ul>${students.map(s => `<li>${s.fullName} (${s.level})</li>`).join('')}</ul></div>
-        <div class="card"><h3>Paiements récents</h3><div class="table-wrapper"><table>${payments.map(p => `<tr><td>${p.amount} DH</td><td>${p.date}</td></tr>`).join('')}</table></div></div>
-        <div class="card"><h3>Emploi du temps</h3>${schedule.map(s => `<div>${s.level}: ${s.day} ${s.timeSlot} - ${s.subject}</div>`).join('')}</div>
-        <div class="card"><h3>Notes</h3><div class="table-wrapper"><table>${notes.map(n => `<tr><td>${n.subject} - ${n.grade}/20 (${n.term})</td></tr>`).join('')}</table></div></div>
-        <div class="card"><h3>Présences</h3><div class="table-wrapper"><tr>${attendance.map(a => `<tr><td>${a.date} - ${a.status}</td></tr>`).join('')}</table></div></div>
-        <button id="parentReserveBtn" class="btn">Réserver un créneau</button>`;
-        document.getElementById('parentDashboardPanel').innerHTML = html;
-        document.getElementById('parentReserveBtn')?.addEventListener('click', async () => {
-            let profId = prompt("ID professeur : " + (await getProfs()).map(p=>p.id+":"+p.name).join(", "));
-            let date = prompt("Date YYYY-MM-DD");
-            let timeSlot = prompt("Créneau (ex: 14h-16h)");
-            if (profId && date && timeSlot) {
-                await setDoc(doc(collection(db, `centres/${currentCentreId}/reservations`)), { studentId: linkedStudentIds[0], profId, date, timeSlot, status: 'en attente', parentEmail: currentUser.email });
-                await addNotification(`Nouvelle réservation de ${currentUser.email} pour le ${date}`);
-                showToast("Réservation envoyée");
-                renderParentDashboard();
-            }
-        });
-    }
-
-    function buildParentUI() {
-        document.getElementById('appContainer').innerHTML = `
-            <div class="flex-between" style="margin-bottom:1rem"><h1><i class="fas fa-graduation-cap"></i> Espace Parent</h1><div><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div></div>
-            <div id="parentDashboardPanel" class="panel active-panel"></div>
-        `;
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
-        loadYearsAndActive().then(() => renderParentDashboard());
-    }
-
-    // Auth
     function renderAuth() {
         document.getElementById('authWrapper').innerHTML = `<div class="auth-card"><h2>Centre Astuces</h2><div id="authTabs" class="flex-between"><button id="showLoginBtn" class="btn btn-outline">Connexion</button><button id="showSignupBtn" class="btn btn-outline">Inscription</button></div><div id="loginForm"><input id="loginEmail" placeholder="Email"><input id="loginPassword" type="password" placeholder="Mot de passe"><button id="doLoginBtn" class="btn">Se connecter</button></div><div id="signupForm" style="display:none"><input id="signupEmail" placeholder="Email"><input id="signupPassword" type="password" placeholder="Mot de passe"><button id="doSignupBtn" class="btn">Créer mon centre</button></div></div>`;
         document.getElementById('showLoginBtn').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none'; };
@@ -453,4 +525,4 @@
     renderAuth();
 </script>
 </body>
-</html>
+    </html>
