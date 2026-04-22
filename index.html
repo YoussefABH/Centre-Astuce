@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Centre Astuces - Version finale</title>
+    <title>Centre Astuces - Plateforme multi-rôles</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Leaflet pour la carte -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #0B0F1C; color: #E2E8F0; padding-bottom: 85px; }
@@ -42,6 +45,7 @@
         .stat-number { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #FFF, var(--primary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .notification-icon { position: relative; cursor: pointer; margin-right: 1rem; }
         .notification-badge { position: absolute; top: -8px; right: -8px; background: var(--danger); border-radius: 50%; width: 12px; height: 12px; display: none; }
+        #map { height: 250px; border-radius: 1rem; margin-top: 0.5rem; }
         @media (max-width: 640px) { .nav-item span { display: none; } .nav-item i { font-size: 1.5rem; } .btn { padding: 0.5rem 1rem; } }
     </style>
 </head>
@@ -81,12 +85,14 @@
     let currentUser = null, activeYearId = null, yearsList = [], currentChart = null;
     let currentUserRole = "centre";
     let currentCentreId = null;
+    let map = null, marker = null;
 
     function showToast(msg, type = "info") { let t = document.querySelector('.toast'); if (t) t.remove(); let div = document.createElement('div'); div.className = 'toast'; div.innerText = msg; if (type === 'error') div.style.borderLeftColor = '#EF4444'; document.body.appendChild(div); setTimeout(() => div.remove(), 3000); }
     function loading(show = true) { let l = document.getElementById('loader'); if (!l && show) { let d = document.createElement('div'); d.id = 'loader'; d.className = 'loading-overlay'; d.innerHTML = '<div class="card">Chargement...</div>'; document.body.appendChild(d); } else if (l && !show) l.remove(); }
     function getYearRef() { if (!currentUser || !activeYearId) return null; return doc(db, `centres/${currentCentreId || currentUser.uid}/years/${activeYearId}`); }
     function getSubCol(name) { return collection(getYearRef(), name); }
 
+    // Data getters (pour centre)
     async function getStudents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('eleves')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
     async function getParents() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('parents')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
     async function getPayments() { if (!activeYearId) return []; const snap = await getDocs(getSubCol('paiements')); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
@@ -103,6 +109,7 @@
     async function addNotification(message) { await setDoc(doc(collection(db, `centres/${currentCentreId || currentUser.uid}/notifications`)), { message, date: new Date(), read: false }); updateNotificationBadge(); }
     async function updateNotificationBadge() { const notifs = await getNotifications(); const unread = notifs.filter(n => !n.read).length; const badge = document.getElementById('notifBadge'); if (badge) badge.style.display = unread ? "block" : "none"; }
 
+    // Gestion des années
     async function loadYearsAndActive() {
         if (!currentUser) return;
         loading(true);
@@ -117,10 +124,14 @@
         const label = document.getElementById('activeYearLabel');
         if (label) label.innerText = activeYearId ? (yearsList.find(y => y.id === activeYearId)?.name || 'Année') : 'Aucune';
         loading(false);
-        refreshCurrentPanel();
+        if (currentUserRole === 'centre' && document.querySelector('.nav-item.active')) refreshCurrentPanel();
+        else if (currentUserRole === 'parent') renderParentDashboard();
+        else if (currentUserRole === 'student') renderStudentDashboard();
+        else if (currentUserRole === 'superadmin') renderSuperAdminDashboard();
     }
     async function openYearModal() { if (currentUserRole !== 'centre') return; let name = prompt("Nom année scolaire (ex: 2024-2025)"); if (!name) return; loading(true); const centreId = currentCentreId || currentUser.uid; await setDoc(doc(collection(db, `centres/${centreId}/years`)), { name, active: yearsList.length === 0, createdAt: new Date() }); await loadYearsAndActive(); showToast("Année créée"); }
 
+    // Modal générique
     function openModal(title, fields, onSubmit) {
         const modalDiv = document.createElement('div');
         modalDiv.className = 'modal';
@@ -138,6 +149,63 @@
         };
     }
 
+    // ========== FICHE D'INFORMATION DU CENTRE ==========
+    async function checkCentreInfo() {
+        if (currentUserRole !== 'centre') return true;
+        const infoDoc = await getDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/infos`, 'details'));
+        if (!infoDoc.exists()) {
+            // Afficher le formulaire de configuration
+            showCentreInfoForm();
+            return false;
+        }
+        return true;
+    }
+
+    function showCentreInfoForm() {
+        document.getElementById('appContainer').innerHTML = `
+            <div class="flex-between"><h1>Configuration du centre</h1><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div>
+            <div class="card">
+                <h3>Informations légales et adresse</h3>
+                <label>Dénomination</label><input type="text" id="denomination" placeholder="Nom du centre">
+                <label>Adresse</label><input type="text" id="address" placeholder="Adresse complète">
+                <label>Coordonnées géographiques</label>
+                <div id="map" style="height:250px; margin-bottom:0.5rem"></div>
+                <input type="text" id="lat" placeholder="Latitude" readonly>
+                <input type="text" id="lng" placeholder="Longitude" readonly>
+                <label>ICE (facultatif)</label><input type="text" id="ice">
+                <label>PATENTE</label><input type="text" id="patente">
+                <label>CNSS</label><input type="text" id="cnss">
+                <label>RC</label><input type="text" id="rc">
+                <button id="saveCentreInfoBtn" class="btn" style="margin-top:1rem">Enregistrer</button>
+            </div>
+        `;
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        // Initialiser la carte
+        map = L.map('map').setView([33.5731, -7.5898], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }).addTo(map);
+        map.on('click', (e) => {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker(e.latlng).addTo(map);
+            document.getElementById('lat').value = e.latlng.lat;
+            document.getElementById('lng').value = e.latlng.lng;
+        });
+        document.getElementById('saveCentreInfoBtn').onclick = async () => {
+            const data = {
+                denomination: document.getElementById('denomination').value,
+                address: document.getElementById('address').value,
+                lat: parseFloat(document.getElementById('lat').value) || null,
+                lng: parseFloat(document.getElementById('lng').value) || null,
+                ice: document.getElementById('ice').value,
+                patente: document.getElementById('patente').value,
+                cnss: document.getElementById('cnss').value,
+                rc: document.getElementById('rc').value,
+                updatedAt: new Date()
+            };
+            await setDoc(doc(db, `centres/${currentCentreId || currentUser.uid}/infos`, 'details'), data);
+            showToast("Informations enregistrées");
+            buildAppUI(); // Recharge l'interface centre
+        };
+    }    // ========== FONCTIONS DE RENDU POUR LE CENTRE ==========
     async function renderDashboard() {
         if (!activeYearId) { document.getElementById('dashboardPanel').innerHTML = '<div class="card">Sélectionnez ou créez une année scolaire</div>'; return; }
         loading(true);
@@ -201,8 +269,13 @@
         let childrenMap = {};
         students.forEach(s=>{ if(s.parentId) childrenMap[s.parentId] = [...(childrenMap[s.parentId]||[]), s.fullName]; });
         let html = `<div class="flex-between"><h2>Parents</h2><button id="addParentBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
-        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Nom</th><th>Téléphone</th><th>Enfants</th><th>Actions</th></tr></thead><tbody>
-            ${parents.map(p=>`<tr><td>${p.name}</td><td>${p.phone||''}</td><td>${childrenMap[p.id]?.join(', ')||'aucun'}</td><td><button data-id="${p.id}" class="editParentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${p.id}" class="deleteParentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
+        <div class="card"><div class="table-wrapper">能able><thead><tr><th>Nom</th><th>Téléphone</th><th>Enfants</th><th>Actions</th></td></thead><tbody>
+            ${parents.map(p=>`<tr>
+                <td>${p.name}</td>
+                <td>${p.phone||''}</td>
+                <td>${childrenMap[p.id]?.join(', ')||'aucun'}</td>
+                <td><button data-id="${p.id}" class="editParentBtn btn-sm btn-outline"><i class="fas fa-edit"></i></button> <button data-id="${p.id}" class="deleteParentBtn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('parentsPanel').innerHTML = html;
         document.getElementById('addParentBtn')?.addEventListener('click',()=>openModal("Ajouter parent",[{id:"name",label:"Nom"},{id:"phone",label:"Téléphone"}],async(data)=>{ await setDoc(doc(getSubCol('parents')),{name:data.name,phone:data.phone}); showToast("Ajouté"); renderParents(); }));
@@ -217,8 +290,15 @@
         payments.forEach(p=>{ if(!levelsGroup[p.level]) levelsGroup[p.level]=0; levelsGroup[p.level]+=Number(p.amount); });
         let html = `<div class="flex-between"><h2>Paiements</h2><button id="addPaymentBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button><button id="pdfInvoiceBtn" class="btn btn-sm btn-outline">Facture sélectionnée</button></div>
         <div class="card"><h3>Sous-totaux par niveau</h3><div class="grid-2">${Object.entries(levelsGroup).map(([lvl,sum])=>`<div>${lvl}: <strong>${sum} DH</strong></div>`).join('')}</div>
-        <h3>Historique</h3><div class="table-wrapper">能able><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></tr></thead><tbody>
-            ${payments.map(p=>`<tr><td><input type="radio" name="selectedPayment" value="${p.id}"></td><td>${studentMap[p.studentId]||'?'}</td><td>${p.amount} DH</td><td>${p.date}</td><td>${p.level}</td><td><button class="singleInvoiceBtn" data-id="${p.id}">📄 PDF</button></td></tr>`).join('')}
+        <h3>Historique</h3><div class="table-wrapper">能able><thead><tr><th>Sélection</th><th>Élève</th><th>Montant</th><th>Date</th><th>Niveau</th><th>Facture</th></table></thead><tbody>
+            ${payments.map(p=>`<tr>
+                <td><input type="radio" name="selectedPayment" value="${p.id}"></td>
+                <td>${studentMap[p.studentId]||'?'}</td>
+                <td>${p.amount} DH</td>
+                <td>${p.date}</td>
+                <td>${p.level}</td>
+                <td><button class="singleInvoiceBtn" data-id="${p.id}">📄 PDF</button></td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('paymentsPanel').innerHTML = html;
         document.getElementById('addPaymentBtn')?.addEventListener('click', async ()=>{ let studentId=prompt("ID élève : "+students.map(s=>s.id+":"+s.fullName).join(", ")); let amount=prompt("Montant"); let date=prompt("Date YYYY-MM-DD"); let student=students.find(s=>s.id===studentId); if(student && amount){ await setDoc(doc(getSubCol('paiements')),{studentId,amount:Number(amount),date,level:student.level}); showToast("Ajouté"); renderPayments(); } });
@@ -230,7 +310,12 @@
         let profs = await getProfs();
         let html = `<div class="flex-between"><h2>Professeurs</h2><button id="addProfBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
         <div class="card"><div class="table-wrapper">能able><thead><tr><th>Nom</th><th>Matière</th><th>Sessions ce mois</th><th>Actions</th></tr></thead><tbody>
-            ${await Promise.all(profs.map(async p=>{ let sessions=await getSessions(p.id); let currentMonth=new Date().toISOString().slice(0,7); let monthSessions=sessions.filter(s=>s.month===currentMonth).reduce((a,b)=>a+Number(b.count),0); return `<tr><td>${p.name}</td><td>${p.subject}</td><td>${monthSessions}</td><td><button class="addSessionBtn" data-id="${p.id}" class="btn-sm btn-outline">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`; }))}
+            ${await Promise.all(profs.map(async p=>{ let sessions=await getSessions(p.id); let currentMonth=new Date().toISOString().slice(0,7); let monthSessions=sessions.filter(s=>s.month===currentMonth).reduce((a,b)=>a+Number(b.count),0); return `<tr>
+                <td>${p.name}</td>
+                <td>${p.subject}</td>
+                <td>${monthSessions}</td>
+                <td><button class="addSessionBtn" data-id="${p.id}" class="btn-sm btn-outline">➕ Session</button> <button class="deleteProfBtn" data-id="${p.id}" class="btn-sm btn-danger">🗑️</button></td>
+            </tr>`; }))}
         </tbody></table></div></div>`;
         document.getElementById('profsPanel').innerHTML = html;
         document.getElementById('addProfBtn')?.addEventListener('click',()=>openModal("Ajouter professeur",[{id:"name",label:"Nom"},{id:"subject",label:"Matière"}],async(data)=>{ await setDoc(doc(getSubCol('profs')),{name:data.name,subject:data.subject}); showToast("Ajouté"); renderProfs(); }));
@@ -242,7 +327,13 @@
         let expenses = await getExpenses();
         let html = `<div class="flex-between"><h2>Dépenses</h2><button id="addExpenseBtn" class="btn"><i class="fas fa-plus"></i> Ajouter</button></div>
         <div class="card"><div class="table-wrapper">能able><thead><tr><th>Description</th><th>Montant</th><th>Date</th><th>Catégorie</th><th></th></tr></thead><tbody>
-            ${expenses.map(e=>`<tr><td>${e.desc}</td><td>${e.amount} DH</td><td>${e.date}</td><td>${e.category}</td><td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></tr>`).join('')}
+            ${expenses.map(e=>`<tr>
+                <td>${e.desc}</td>
+                <td>${e.amount} DH</td>
+                <td>${e.date}</td>
+                <td>${e.category}</td>
+                <td><button class="deleteExpenseBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('expensesPanel').innerHTML = html;
         document.getElementById('addExpenseBtn')?.addEventListener('click',()=>openModal("Ajouter dépense",[{id:"desc",label:"Description"},{id:"amount",label:"Montant"},{id:"date",label:"Date"},{id:"category",label:"Catégorie"}],async(data)=>{ await setDoc(doc(getSubCol('depenses')),{desc:data.desc,amount:Number(data.amount),date:data.date,category:data.category}); showToast("Ajoutée"); renderExpenses(); }));
@@ -256,7 +347,13 @@
         let html = `<div class="flex-between"><h2>Emploi du temps</h2><button id="addScheduleBtn" class="btn"><i class="fas fa-plus"></i> Ajouter cours</button></div>`;
         for(let lvl of levels){
             html += `<div class="card"><h3>${lvl}</h3><div class="table-wrapper">能able><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Professeur</th><th></th></tr></thead><tbody>
-                ${entries.filter(e=>e.level===lvl).map(e=>`<tr><td>${e.day}</td><td>${e.timeSlot}</td><td>${e.subject}</td><td>${e.profName||''}</td><td><button class="delSchedBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td></tr>`).join('')}
+                ${entries.filter(e=>e.level===lvl).map(e=>`<tr>
+                    <td>${e.day}</td>
+                    <td>${e.timeSlot}</td>
+                    <td>${e.subject}</td>
+                    <td>${e.profName||''}</td>
+                    <td><button class="delSchedBtn" data-id="${e.id}" class="btn-sm btn-danger">🗑️</button></td>
+                </tr>`).join('')}
             </tbody></table></div></div>`;
         }
         document.getElementById('schedulePanel').innerHTML = html;
@@ -311,12 +408,12 @@
         let attendance = await getAttendance(), students = await getStudents();
         let html = `<div class="flex-between"><h2>Présences</h2><button id="addAttendanceBtn" class="btn">Ajouter présence</button><button id="exportAttendancePDFBtn" class="btn btn-outline">Export PDF</button></div>
         <div class="card"><div class="table-wrapper">能able><thead><tr><th>Date</th><th>Élève</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
-            ${attendance.map(a=>`<tr>
+            ${attendance.map(a=>`</tr>
                 <td>${a.date}</td>
                 <td>${students.find(s=>s.id===a.studentId)?.fullName}</td>
                 <td>${a.status}</td>
-                <td><button class="deleteAttendanceBtn" data-id="${a.id}">🗑️</button></tr>
-            `).join('')}
+                <td><button class="deleteAttendanceBtn" data-id="${a.id}">🗑️</button></td>
+            </tr>`).join('')}
         </tbody></table></div></div>`;
         document.getElementById('attendancePanel').innerHTML = html;
         document.getElementById('addAttendanceBtn')?.addEventListener('click',async()=>{ let studentId=prompt("ID élève : "+students.map(s=>s.id+":"+s.fullName).join(", ")); let date=prompt("Date YYYY-MM-DD"); let status=prompt("Statut (présent/absent/retard)"); if(studentId && date) await setDoc(doc(collection(db,`centres/${currentCentreId || currentUser.uid}/attendance`)),{studentId,date,status}); renderAttendance(); });
@@ -334,8 +431,8 @@
                 <td>${n.grade}</td>
                 <td>${n.term}</td>
                 <td>${n.date}</td>
-                <td><button class="deleteGradeBtn" data-id="${n.id}">🗑️</button></tr>
-            `).join('')}
+                <td><button class="deleteGradeBtn" data-id="${n.id}">🗑️</button></td>
+            </tr>`).join('')}
         </tbody></table></div></div><div class="card"><canvas id="gradeChart"></canvas></div>`;
         document.getElementById('gradesPanel').innerHTML = html;
         document.getElementById('addGradeBtn')?.addEventListener('click',async()=>{ let studentId=prompt("ID élève : "+students.map(s=>s.id+":"+s.fullName).join(", ")); let subject=prompt("Matière"); let grade=prompt("Note /20"); let term=prompt("Trimestre (1,2,3)"); let date=new Date().toISOString().slice(0,10); if(studentId && subject && grade) await setDoc(doc(collection(db,`centres/${currentCentreId || currentUser.uid}/notes`)),{studentId,subject,grade:parseFloat(grade),term,date}); renderGrades(); });
@@ -408,9 +505,10 @@
         refreshCurrentPanel();
     }
 
+    // ========== INTERFACE PARENT ==========
     async function renderParentDashboard() {
         const parentDoc = await getDoc(doc(db, `centres/${currentCentreId}/parentAccounts`, currentUser.uid));
-        if (!parentDoc.exists()) return;
+        if (!parentDoc.exists()) { showToast("Erreur: compte parent non lié"); return; }
         const linkedStudentIds = parentDoc.data().studentIds || [];
         const students = (await getStudents()).filter(s => linkedStudentIds.includes(s.id));
         const payments = (await getPayments()).filter(p => linkedStudentIds.includes(p.studentId));
@@ -421,7 +519,7 @@
         let html = `<div class="card"><h3>Mes enfants</h3><ul>${students.map(s => `<li>${s.fullName} (${s.level})</li>`).join('')}</ul></div>
         <div class="card"><h3>Paiements récents</h3><div class="table-wrapper">能able>${payments.map(p => `<tr><td>${p.amount} DH</td><td>${p.date}</td></tr>`).join('')}</table></div></div>
         <div class="card"><h3>Emploi du temps</h3>${schedule.map(s => `<div>${s.level}: ${s.day} ${s.timeSlot} - ${s.subject}</div>`).join('')}</div>
-        <div class="card"><h3>Notes</h3><div class="table-wrapper">能able>${notes.map(n => `<tr><td>${n.subject} - ${n.grade}/20 (${n.term})</td></tr>`).join('')}</table></div></div>
+        <div class="card"><h3>Notes</h3><div class="table-wrapper">能able>${notes.map(n => `<tr><td>${n.subject} - ${n.grade}/20 (${n.term})</td><tr>`).join('')}</table></div></div>
         <div class="card"><h3>Présences</h3><div class="table-wrapper">能able>${attendance.map(a => `<tr><td>${a.date} - ${a.status}</td></tr>`).join('')}</table></div></div>
         <button id="parentReserveBtn" class="btn">Réserver un créneau</button>`;
         document.getElementById('parentDashboardPanel').innerHTML = html;
@@ -447,6 +545,72 @@
         loadYearsAndActive().then(() => renderParentDashboard());
     }
 
+    // ========== INTERFACE ÉLÈVE ==========
+    async function renderStudentDashboard() {
+        const studentDoc = await getDoc(doc(db, `centres/${currentCentreId}/studentAccounts`, currentUser.uid));
+        if (!studentDoc.exists()) { showToast("Erreur: compte élève non lié"); return; }
+        const studentId = studentDoc.data().studentId;
+        const student = (await getStudents()).find(s => s.id === studentId);
+        const notes = (await getNotes()).filter(n => n.studentId === studentId);
+        const attendance = (await getAttendance()).filter(a => a.studentId === studentId);
+        const scheduleSnap = await getDocs(getSubCol('schedule'));
+        const schedule = scheduleSnap.docs.map(d => d.data()).filter(s => s.level === student?.level);
+        let html = `<div class="card"><h3>Mon profil</h3><p>${student?.fullName} (${student?.level})</p></div>
+        <div class="card"><h3>Mes notes</h3><div class="table-wrapper">能able>${notes.map(n => `<tr><td>${n.subject} - ${n.grade}/20 (${n.term})</td></tr>`).join('')}</table></div></div>
+        <div class="card"><h3>Mes présences</h3><div class="table-wrapper">能able>${attendance.map(a => `<tr><td>${a.date} - ${a.status}</td></tr>`).join('')}</table></div></div>
+        <div class="card"><h3>Emploi du temps</h3>${schedule.map(s => `<div>${s.day} ${s.timeSlot} - ${s.subject}</div>`).join('')}</div>`;
+        document.getElementById('studentDashboardPanel').innerHTML = html;
+    }
+
+    function buildStudentUI() {
+        document.getElementById('appContainer').innerHTML = `
+            <div class="flex-between" style="margin-bottom:1rem"><h1><i class="fas fa-graduation-cap"></i> Espace Élève</h1><div><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div></div>
+            <div id="studentDashboardPanel" class="panel active-panel"></div>
+        `;
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        loadYearsAndActive().then(() => renderStudentDashboard());
+    }
+
+    // ========== INTERFACE SUPER-ADMIN ==========
+    async function renderSuperAdminDashboard() {
+        // Récupérer tous les centres (document users avec role centre)
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const centres = usersSnap.docs.filter(d => d.data().role === 'centre').map(d => ({ uid: d.id, ...d.data() }));
+        let html = `<h2>Gestion des centres</h2><div class="card"><div class="table-wrapper">能able><thead><tr><th>Email</th><th>Date création</th><th>Actions</th></tr></thead><tbody>
+            ${centres.map(c => `<tr>
+                <td>${c.email}</td>
+                <td>${c.createdAt?.toDate?.().toLocaleDateString() || 'N/A'}</td>
+                <td><button class="viewCentreBtn" data-uid="${c.uid}">Voir détails</button> <button class="deleteCentreBtn" data-uid="${c.uid}">Supprimer</button></td>
+            </tr>`).join('')}
+        </tbody></table></div></div>`;
+        document.getElementById('superAdminPanel').innerHTML = html;
+        document.querySelectorAll('.viewCentreBtn').forEach(btn => btn.addEventListener('click', async () => {
+            const centreId = btn.dataset.uid;
+            // Afficher les infos du centre (on peut ouvrir une modale)
+            const infoDoc = await getDoc(doc(db, `centres/${centreId}/infos`, 'details'));
+            const info = infoDoc.exists() ? infoDoc.data() : {};
+            alert(`Centre: ${info.denomination || 'N/A'}\nAdresse: ${info.address || 'N/A'}\nICE: ${info.ice || ''}\nPATENTE: ${info.patente || ''}`);
+        }));
+        document.querySelectorAll('.deleteCentreBtn').forEach(btn => btn.addEventListener('click', async () => {
+            if(confirm("Supprimer définitivement ce centre ?")) {
+                // Supprimer l'utilisateur (nécessite fonction cloud) - ici on se contente de supprimer le document users
+                await deleteDoc(doc(db, 'users', btn.dataset.uid));
+                showToast("Centre supprimé (compte utilisateur restant)");
+                renderSuperAdminDashboard();
+            }
+        }));
+    }
+
+    function buildSuperAdminUI() {
+        document.getElementById('appContainer').innerHTML = `
+            <div class="flex-between" style="margin-bottom:1rem"><h1><i class="fas fa-crown"></i> Super Admin</h1><div><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div></div>
+            <div id="superAdminPanel" class="panel active-panel"></div>
+        `;
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        renderSuperAdminDashboard();
+    }
+
+    // ========== INTERFACE CENTRE (principale) ==========
     function buildAppUI() {
         document.getElementById('appContainer').innerHTML = `
             <div class="flex-between"><h1><i class="fas fa-graduation-cap"></i> Centre Astuces</h1><div><div class="notification-icon" id="notifIcon"><i class="fas fa-bell"></i><span id="notifBadge" class="notification-badge"></span></div><button id="logoutBtn" class="btn btn-sm btn-outline">Déconnexion</button></div></div>
@@ -482,6 +646,7 @@
         document.getElementById('notifIcon')?.addEventListener('click', async () => { let notifs = await getNotifications(); let msg = notifs.filter(n=>!n.read).map(n=>n.message).join('\n'); alert(msg || "Aucune notification"); for(let n of notifs.filter(n=>!n.read)) await updateDoc(doc(db,`centres/${currentCentreId || currentUser.uid}/notifications`,n.id),{read:true}); updateNotificationBadge(); });
     }
 
+    // ========== AUTHENTIFICATION ==========
     function renderAuth() {
         document.getElementById('authWrapper').innerHTML = `<div class="auth-card"><h2>Centre Astuces</h2><div id="authTabs" class="flex-between"><button id="showLoginBtn" class="btn btn-outline">Connexion</button><button id="showSignupBtn" class="btn btn-outline">Inscription</button></div><div id="loginForm"><input id="loginEmail" placeholder="Email"><input id="loginPassword" type="password" placeholder="Mot de passe"><button id="doLoginBtn" class="btn">Se connecter</button></div><div id="signupForm" style="display:none"><input id="signupEmail" placeholder="Email"><input id="signupPassword" type="password" placeholder="Mot de passe"><button id="doSignupBtn" class="btn">Créer mon centre</button></div></div>`;
         document.getElementById('showLoginBtn').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none'; };
@@ -493,7 +658,7 @@
             try {
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 await setDoc(doc(db, 'users', userCred.user.uid), { email, role: 'centre', createdAt: new Date() });
-                showToast("Centre créé !");
+                showToast("Centre créé ! Veuillez vous connecter.");
             } catch(e) { showToast(e.message, 'error'); }
         };
     }
@@ -502,18 +667,34 @@
         if (user) {
             currentUser = user;
             const userDoc = await getDoc(doc(db, 'users', user.uid));
-            if (userDoc.exists() && userDoc.data().role === 'parent') {
-                currentUserRole = 'parent';
+            const role = userDoc.exists() ? userDoc.data().role : 'centre';
+            currentUserRole = role;
+            if (role === 'parent') {
                 currentCentreId = userDoc.data().centreId;
                 document.getElementById('authWrapper').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
                 buildParentUI();
-            } else {
-                currentUserRole = 'centre';
+            } else if (role === 'student') {
+                currentCentreId = userDoc.data().centreId;
+                document.getElementById('authWrapper').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                buildStudentUI();
+            } else if (role === 'superadmin') {
+                currentCentreId = null;
+                document.getElementById('authWrapper').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                buildSuperAdminUI();
+            } else { // centre
                 currentCentreId = user.uid;
                 document.getElementById('authWrapper').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
-                buildAppUI();
+                // Vérifier si les infos du centre sont remplies
+                const infoDoc = await getDoc(doc(db, `centres/${currentCentreId}/infos`, 'details'));
+                if (!infoDoc.exists()) {
+                    showCentreInfoForm();
+                } else {
+                    buildAppUI();
+                }
             }
         } else {
             currentUser = null;
@@ -525,4 +706,5 @@
     renderAuth();
 </script>
 </body>
-    </html>
+</html>
+    
